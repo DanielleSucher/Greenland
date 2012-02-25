@@ -1,0 +1,9 @@
+A card game invented by Dave Turner, inspired by the chapter 
+in Jared Diamond's _Collapse_ where the Vikings go to Greenland and
+then they all die. 
+
+I'm currently working on modeling the game, and then I'll get to 
+defining some player strategies and running them through to see if 
+any of them actually work, or if the game rules need to be modified. 
+
+VERY in-progress.

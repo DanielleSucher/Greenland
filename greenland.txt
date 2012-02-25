@@ -1,0 +1,269 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
+Here are the rules to Greenland.  The problem is: I don't what the
+numbers should be for things like soil erosion, food and hay tokens
+used and produced, etc.  What I want is a simple simulation of the
+game, with players following various simplified strategies for each
+decision such as "x% of the time go walrus hunting (but only if less
+than N other players are)".  There will also have to be strategies
+around resources sharing, which is more complicated.
+
+The central questions are:
+(a) are there sets of strategies where everyone loses?
+(b) are there sets of strategies where someone wins?
+(c) are there sets of strategies where someone wins *and* it is not the case
+that everyone else is dead?
+(d) in each of these cases, does resource sharing (trading) happen?
+
+If if turns out that the answer is that there are no winning
+strategies, or that there are no strategies that wind up with people
+dead, then I want to try various alternatives for the numbers, until
+there are these strategies.  
+
+
+
+Greenland: a game for 2-6 players
+
+Components:
+One year deck, consisting of:
+(1) succession card, which signals the end of the game
+(5) warm years (of which one is an expensive walrus year and one a cheap walrus year)
+(5) cold years (ditto)
+(10) temperate years (two of each)
+
+One walrus deck, consisting of:
+(5) good hunting 
+(5) poor hunting
+(10) ordinary hunting
+(1) storm
+
+One winter deck, consisting of:
+(2) It's still winter
+(1) spring
+
+A soil track for each player, numbered 0-99, with each block of ten
+marked with a number from 1-10 (the soil fertility level)
+
+A *single* tree track, numbered 0-99, with each block of ten (0-9,
+10-19, ...) marked by a level from 10 (at 0-9) down to 1 (the soil
+erosion rate)
+
+One seal deck, consisting of:
+(10) seals
+(1) your hunter dies
+(1) no seals
+
+Tokens:
+Silver
+Ivory
+
+Cows
+Sheep
+
+Food
+Hay
+
+People
+Boats
+
+Building cards:
+barns
+
+Rules:
+
+Trading: Unless otherwise specified, a player may at any sequence
+point (*) give or trade tokens to any other player.  Trades with immediate
+effect (i.e. one cow right now for three hay right now) may not be
+reneged upon; trades with future effect (one cow now for three hay
+next summer) may be. The exception is people tokens, which may be
+given and traded but which the original owner may retrieve any time
+they are in the settlement (that is, not hunting walrus and not in
+Vinland)
+
+Tokens and buildings are public.
+
+Setup: 
+
+Each player gets four person tokens, a barn, one cow, four sheep, and
+a boat
+
+Remove the succession card from the year deck.  Shuffle the year
+deck and divide it into two evenly sized piles.  Put the succession
+card into one of the piles, reshuffle that pile, and put it beneath
+the other pile.
+
+Shuffle the winter and walrus decks, separately
+
+Each player starts their soil fertility counter at the most fertile
+end (99) of their soil tracks; the tree counter starts at the most
+trees (99) end of the tree track.
+
+Choose one player to be the dealer by rolling dice for highest.
+
+Phases of a turn: 
+
+(1) spring: Each player returns half (rounding up) of all hay tokens.
+
+Turn up the top year card.  It will determine how productive the
+fields are this year.  
+
+There is intentionally not a sequence point here.
+
+If the top card is Succession: Return all people to their original
+owners.  The game is now over and the player with any surviving people
+and the most silver wins.
+
+*
+
+Each player independently decides if they are going to hunt seals.  
+
+Each player who hunts seals puts aside one person token.
+
+*
+
+Go around in a circle, starting from the dealer: each player decides
+if they are going to send a boat to Vinland.  If they do decide to
+send a boat, they must send at least two of their people on it.  Go
+around the circle again: each player who is sending a boat says how
+many people they are sending.  Each player who is not sending a boat
+may request that another player carry some of their people; they may
+request this of as many players as they like, in any order; they may
+take more than one offer.  A boat can hold at most ten people.
+
+*
+
+Draw a card from the seal hunting deck. If seals are drawn, each
+player who hunted gains 12 food tokens.  If the hunter dies, discard
+the person token.  Otherwise, return the seal hunters.
+
+Cows and sheep reproduce: for each sheep token, gain a sheep token;
+same for cows.  Put the new tokens in the nursery to show that they do
+not produce milk this year.
+
+Each player still in the game gains a person token.
+
+(2) summer:
+
+*
+
+Each player decides if they are going to hunt walrus and
+how many people they will send.  Hunting walrus requires a boat, and
+the choosing is run exactly like Vinland.
+
+*
+
+Except on turn 1, or if the trade ship is on the "not worth it" space:
+
+A ship arrives from Norway: players may trade processed ivory tokens
+for silver at the rate of 1:1 on a cheap year, 1:2 on an ordinary
+year, and 1:3 on an expensive year.  If the players, collectively, do
+not trade at least 3 ivory, the ship will not return the next year
+(move the trade ship to the "not worth it" space).  Trading happens
+in a circle as per Vinland.
+
+Each player gains up to N hay token per person (who is not in Vinland
+or hunting walrus) per soil fertility level.  On a warm year, N=4, a
+temperate year, N=3, and a cold year, N=2.  Move each player's soil
+fertility counter down (less fertile) by E * T /3 (rounding up), where
+E is the soil erosion rate, and T is the number of hay tokens actually
+taken.
+
+Each cow produces 12 food tokens; each sheep produces 8.
+
+(4) Fall:
+Everyone who is in Vinland comes back.  Gain 2 units of timber per
+person.
+
+Everyone who was hunting walrus comes back.  Draw a card from the
+walrus deck -- if it was a good walrus year, each person returns with
+five ivory tokens; a bad year, three, an ordinary year, two.  If the
+storm card is drawn, all of the people on the walrus boats, and the
+boats, are returned.
+
+*
+
+Players may trade sheep for 12 food tokens each or cows for 18.
+
+*
+
+Players go around in a circle, starting from the dealer, to cut down a
+tree or deconstruct a boat.  The circle continues until everyone
+passes; once a player has passed, they may not later decide to cut
+down a tree.  Each player may cut up to one tree (or deconstruct up to
+one of their boats) per person token, gaining a timber token and, if
+cutting a tree, moving the tree counter down one.
+
+(5) Early Winter:
+
+Remove all the cows and sheep from the nursery.
+
+*
+
+Each player may move cows and sheep to their barns.  All cows and
+sheep not in barns are returned.  Each barn can hold 6 animals.
+
+Each player returns six hay tokens for each cow.  They may also return
+three hay tokens for each sheep, or graze their sheep outside.
+
+If a player does not graze their sheep outside, the soil can recover;
+their soil fertility counter moves up (more fertile) by 4.
+
+Each player returns three food tokens per person.
+
+(6) Midwinter
+
+Players go around in a circle, starting from the dealer, deciding on
+building actions.  Each person token may only participate in a single
+building action.  The building actions are:
+
+Repair a barn: repairs require one person and one unit of timber.  Any
+barns not repaired at the end of this phase are destroyed.  A Player
+may, with the consent of the other player, repair another player's barn.
+
+Build a barn: this requires six people and six units of timber. 
+
+Build a boat: this requires three people and three units of timber.
+
+*
+
+The player with the most cows (or, in case of a tie, the most sheep,
+then people, then roll a die), chooses the next dealer.
+
+(7) Ending winter: 
+
+Turn up the top winter card.  
+
+*
+
+If it's still winter, each player returns two hay tokens for each cow
+and one for each sheep (even if their sheep were previously grazing
+outside).  Each player returns one meat tokens or cheese token per
+person. Repeat turning up winter cards until the spring card comes up.
+Reshuffle the winter deck.
+
+If at any time during the winter, a player is required to return hay
+tokens but does not return one, they must return all of their sheep
+and cow tokens.  If they are required to return a food token and don't
+have one, all of their people die and they are eliminated from the
+game.  
+
+
+CUTS: 
+
+spring: Each player returns half (rounding up) of all hay tokens
+*which are not stored in barns* (need to add barn storage rules)
+
+iron seems to have no use, becuase I didn't implement skraelings,
+I think.
+
+
+One immigrant deck, consisting of:
+Eyvind, the smith
+Gunnvald, the priest
+Lars, the hunter
+Henrik, the weather predictor
+Margareth, the cow breeder
+Brigit, the sheep breeder
+Magnus, the builder
