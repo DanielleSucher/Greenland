@@ -328,9 +328,7 @@ end
 		# Everyone who is in Vinland comes back.  
 
 		# Gain 2 units of timber per person.
-		for i in 0...Player.count
-			Player[i].tokencollection[:timber] += 1
-		end
+		@players.map! { |player| player.tokens[:timber] += 1 }
 
 
 		# Everyone who was hunting walrus comes back.  Draw a card from the
