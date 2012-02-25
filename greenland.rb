@@ -33,10 +33,11 @@ class Game
 	end
 
 	def shuffle_decks
-		@yeardeck.shuffle! #still need to define the weird shuffle in the YearDeck class)
+		@yeardeck.shuffle! # weird shuffle defined in the YearDeck class
 		@walrusdeck.cards.shuffle!
 		@winterdeck.cards.shuffle!
 		@sealdeck.cards.shuffle!
+		# remember for decks, the first card in the array is the top card
 	end
 
 end
@@ -73,15 +74,25 @@ class YearDeck < Deck
 
 
 	def shuffle!
-		# 		Remove the succession card from the year deck.  Shuffle the year
+		# Remove the succession card from the year deck.  Shuffle the year
 		# deck and divide it into two evenly sized piles.  Put the succession
 		# card into one of the piles, reshuffle that pile, and put it beneath
 		# the other pile.
-		self.cards.shuffle!
+		
 		# first remove the succession card 
-		# The Year Deck has 21 cards total, so 20 w/o the succession card
+		self.cards.delete( { :succession => true} )
+		# then shuffle the remaining 20 cards
+		self.cards.shuffle!
+		# split the deck in half (2 half decks of 10 cards each)
 		half_deck = self.cards.slice[0..9]
 		other_half = self.cards.slice[10..19]
+		# put the succession card into one of the halves
+		other_half << { :succession => true}
+		# shuffle that half that now contains the succession card
+		other_half.shuffle!
+		# put the half with the succession card underneath the first half
+		self.cards = half_deck + other_half
+		# remember for decks, the first card in the array is the top card
 	end
 end
 
@@ -128,20 +139,21 @@ class SealDeck < Deck
 	def initialize
 		@cards = []
 		10.times do
-			@cards << { :seals => true  } 
+			@cards << { :seals => true, :hunterdies => false } 
 		end
-		@cards << { :seals => false }
-		@cards << { :hunterdies => true }
+		@cards << { :seals => false, :hunterdies => false }
+		@cards << { :seals => false, :hunterdies => true }
 	end
 end
 
 class Player
-	attr_accessible :soiltrack , :barns, :tokens
+	attr_accessible :soiltrack , :barns, :nursery, :tokens
 
 	# Each player starts with the following tokens: 4 persons, 4 sheep, 1 barn, 1 cow, 1 boat
 	# Each player has a SoilTrack, which starts at its most fertile end (99)
 	def initialize
 		@barns = 1
+		@nursery = 0 # keeps track of how many cows/sheep are babies and thus don't produce milk each turn/year
 		@soiltrack = 99
 			# A soil track for each player, numbered 0-99, with each block of ten
 			# marked with a number from 1-10 (the soil fertility level), starts at 99
@@ -180,7 +192,7 @@ class Player
 		end
 	end
 
-	# Tokens and buildings are public. (What does this mean?)
+	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player?)
 
 	#include all the rules on trading tokens
 
@@ -201,15 +213,6 @@ end
 # end
 
 class Turn
-
-	def next_turn
-		self.spring
-		self.summer
-		self.fall
-		self.early_winter
-		self.mid_winter
-		self.end_winter
-	end
 
 	def sequence_point
 		# these are the moments in each season (and thus each turn) when players can trade
@@ -236,7 +239,9 @@ class Turn
 
 	def spring
 		# Turn up the top year card.  It will determine how productive the
-		# fields are this year.  
+		# fields are this year. 
+		current_year = @yeardeck.cards.first 
+		@yeardeck.cards.delete_at(0) #delete the top year card, so that the next one down will be on top when the next turn starts
 
 		# There is intentionally not a sequence point here.
 
@@ -269,12 +274,25 @@ class Turn
 		# Draw a card from the seal hunting deck. If seals are drawn, each
 		# player who hunted gains 12 food tokens.  If the hunter dies, discard
 		# the person token.  Otherwise, return the seal hunters.
+		check_for_seals = @sealdeck.cards.first
+		@sealdeck.cards.delete_at(0)
+		if check_for_seals[:hunterdies] == false
+			# discard the person token
+			# bpp no food
+			elsif check_for_seals[:seals] == true
+				# yay food
+			else
+				# boo no food
+			end
+		end
+
 
 		# Cows and sheep reproduce: for each sheep token, gain a sheep token;
 		# same for cows.  Put the new tokens in the nursery to show that they do
 		# not produce milk this year.
 
 		# Each player still in the game gains a person token.
+		@players.map! { |player| player.tokens[:local_people] += 1 }
 	end
 
 
@@ -397,6 +415,15 @@ end
 		@players.each do
 			# something, surely
 		end
+	end
+
+	def next_turn
+		self.spring
+		self.summer
+		self.fall
+		self.early_winter
+		self.mid_winter
+		self.end_winter
 	end
 end
 
