@@ -12,22 +12,22 @@ class YearDeck < Deck
 
 	def initialize
 		@cards = []
-		@cards << { :temp => "warm", :walrus => "expensive"}
-		@cards << { :temp => "warm", :walrus => "cheap"}
-		@cards << { :temp => "cold", :walrus => "expensive"}
-		@cards << { :temp => "cold", :walrus => "cheap"}
+		@cards << { :succession => true}
+		@cards << { :temp => "warm", :walrus => "expensive", :succession => false }
+		@cards << { :temp => "warm", :walrus => "cheap", :succession => false }
+		@cards << { :temp => "cold", :walrus => "expensive", :succession => false }
+		@cards << { :temp => "cold", :walrus => "cheap", :succession => false }
 		3.times do
-			@cards << { :temp => "warm", :walrus => "ordinary"}
-			@cards << { :temp => "cold", :walrus => "ordinary"}
+			@cards << { :temp => "warm", :walrus => "ordinary", :succession => false }
+			@cards << { :temp => "cold", :walrus => "ordinary", :succession => false }
 		end
 		2.times do
-			@cards << { :temp => "temperate", :walrus => "expensive"}
-			@cards << { :temp => "temperate", :walrus => "cheap"}
+			@cards << { :temp => "temperate", :walrus => "expensive", :succession => false }
+			@cards << { :temp => "temperate", :walrus => "cheap", :succession => false }
 		end
 		6.times do
-			@cards << { :temp => "temperate", :walrus => "ordinary"}
+			@cards << { :temp => "temperate", :walrus => "ordinary", :succession => false }
 		end
-		@cards << { :succession => true}
 	end
 
 
@@ -64,13 +64,13 @@ class WalrusDeck < Deck
 	def initialize
 		@cards = []
 		5.times do
-			@cards << { :hunting => "good" } 
-			@cards << { :hunting => "poor" } 
+			@cards << { :hunting => "good", :storm => false } 
+			@cards << { :hunting => "poor", :storm => false } 
 		end
 		10.times do
-			@cards << { :hunting => "ordinary" } 
+			@cards << { :hunting => "ordinary", :storm => false } 
 		end
-		@cards << { :storm => true}
+		@cards << { :storm => true }
 	end
 end
 
@@ -105,14 +105,14 @@ class SealDeck < Deck
 end
 
 class Player
-	attr_accessor :soiltrack , :barns, :nursery, :tokens
+	attr_accessor :soil_track , :barns, :nursery, :tokens
 
 	# Each player starts with the following tokens: 4 persons, 4 sheep, 1 barn, 1 cow, 1 boat
 	# Each player has a SoilTrack, which starts at its most fertile end (99)
 	def initialize
 		@barns = 1
 		@nursery = 0 # keeps track of how many cows/sheep are babies and thus don't produce milk each turn/year
-		@soiltrack = 99
+		@soil_track = 99
 			# A soil track for each player, numbered 0-99, with each block of ten
 			# marked with a number from 1-10 (the soil fertility level), starts at 99
 		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0, :vinland_people => 0 }
@@ -150,8 +150,6 @@ class Player
 		end
 	end
 
-	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player?)
-
 	#include all the rules on trading tokens
 
 	# Trading: Unless otherwise specified, a player may at any sequence
@@ -175,15 +173,14 @@ end
 
 
 
-
 class Turn
 
-	def initialize(players,yeardeck,walrusdeck,winterdeck,sealdeck)
+	def initialize(players,year_deck,walrus_deck,winter_deck,seal_deck)
 		@players = players
-		@yeardeck = yeardeck
-		@walrusdeck = walrusdeck
-		@winterdeck = winterdeck
-		@sealdeck = sealdeck
+		@year_deck = year_deck
+		@walrus_deck = walrus_deck
+		@winter_deck = winter_deck
+		@seal_deck = seal_deck
 	end
 
 	def sequence_point
@@ -212,8 +209,8 @@ class Turn
 	def spring
 		# Turn up the top year card.  It will determine how productive the
 		# fields are this year. 
-		current_year = @yeardeck.cards.first 
-		@yeardeck.cards.delete_at(0) #delete the top year card, so that the next one down will be on top when the next turn starts
+		current_year = @year_deck.cards.first 
+		@year_deck.cards.delete_at(0) #delete the top year card, so that the next one down will be on top when the next turn starts
 
 		# There is intentionally not a sequence point here.
 
@@ -246,8 +243,8 @@ class Turn
 		# Draw a card from the seal hunting deck. If seals are drawn, each
 		# player who hunted gains 12 food tokens.  If the hunter dies, discard
 		# the person token.  Otherwise, return the seal hunters.
-		check_for_seals = @sealdeck.cards.first
-		@sealdeck.cards.delete_at(0)
+		check_for_seals = @seal_deck.cards.first
+		@seal_deck.cards.delete_at(0)
 		if check_for_seals[:hunterdies] == false
 			# discard the person token
 			# bpp no food
@@ -404,9 +401,10 @@ end
 
 
 
+
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :treetrack, :players
+	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, :seal_deck
 
 	def create_players(number_players)
 		@players = []
@@ -416,23 +414,23 @@ class Game
 	end
 
 	def create_decks
-		@yeardeck = YearDeck.new
-		@walrusdeck = WalrusDeck.new
-		@winterdeck = WinterDeck.new
-		@sealdeck = SealDeck.new
+		@year_deck = YearDeck.new
+		@walrus_deck = WalrusDeck.new
+		@winter_deck = WinterDeck.new
+		@seal_deck = SealDeck.new
 	end
 
 	def shuffle_decks
-		@yeardeck.shuffle! # weird shuffle defined in the YearDeck class
-		@walrusdeck.cards.shuffle!
-		@winterdeck.cards.shuffle!
-		@sealdeck.cards.shuffle!
+		@year_deck.shuffle! # weird shuffle defined in the YearDeck class
+		@walrus_deck.cards.shuffle!
+		@winter_deck.cards.shuffle!
+		@seal_deck.cards.shuffle!
 		# remember for decks, the first card in the array is the top card
 	end
 
 	def initialize(number_players)
 		@number_players = number_players
-		@treetrack = 99
+		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
 		self.create_players(@number_players)
@@ -444,8 +442,11 @@ class Game
 		# loop through turns until the succession card is found
 	end
 
+	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player? 
+	# create methods for checking the game state (and a game state that sums stuff up), maybe?)
+
 	def play
-		first_turn = Turn.new(@players,@yeardeck,@walrusdeck,@winterdeck,@sealdeck)
+		first_turn = Turn.new(@players,@year_deck,@walrus_deck,@winter_deck,@seal_deck)
 		first_turn.play
 	end
 
