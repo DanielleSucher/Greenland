@@ -1,52 +1,10 @@
 # Greenland: a game for 2-6 players
-class Game
-	attr_accessor :number_players, :treetrack
-
-	validates :number_players, :presence => true, :numericality => { :greater_than => 1, :less_than_or_equal_to => 6 }
-
-	def initialize(number_players)
-		@number_players = number_players
-		@treetrack = 99
-			# A *single* tree track, numbered 0-99, with each block of ten marked by
-			# a number from 1-10 (the soil anchoring rate), starts at 99
-		self.create_players(@number_players)
-		self.create_decks
-		self.shuffle_decks
-		# Choose one player to be the dealer by rolling dice for highest. @players.choose_dealer? (first define choose_dealer down in Player)
-		# the tree counter starts at the most trees (99) end of the tree track.
-
-		# loop through turns until the succession card is found
-	end
-
-	def create_players(number_players)
-		@players = []
-		for i in 1..number_players
-			@players << Player.new
-		end
-	end
-
-	def create_decks
-		@yeardeck = YearDeck.new
-		@walrusdeck = WalrusDeck.new
-		@winterdeck = WinterDeck.new
-		@sealdeck = SealDeck.new
-	end
-
-	def shuffle_decks
-		@yeardeck.shuffle! # weird shuffle defined in the YearDeck class
-		@walrusdeck.cards.shuffle!
-		@winterdeck.cards.shuffle!
-		@sealdeck.cards.shuffle!
-		# remember for decks, the first card in the array is the top card
-	end
-
-end
 
 class Deck
 end
 
 class YearDeck < Deck
-	attr_accessible :cards
+	attr_accessor :cards
 	# (1) succession card, which signals the end of the game
 	# (5) warm years (of which one is an expensive walrus year and one a cheap walrus year)
 	# (5) cold years (ditto)
@@ -84,8 +42,8 @@ class YearDeck < Deck
 		# then shuffle the remaining 20 cards
 		self.cards.shuffle!
 		# split the deck in half (2 half decks of 10 cards each)
-		half_deck = self.cards.slice[0..9]
-		other_half = self.cards.slice[10..19]
+		half_deck = self.cards[0..9]
+		other_half = self.cards[10..19]
 		# put the succession card into one of the halves
 		other_half << { :succession => true}
 		# shuffle that half that now contains the succession card
@@ -97,7 +55,7 @@ class YearDeck < Deck
 end
 
 class WalrusDeck < Deck
-	attr_accessible :cards
+	attr_accessor :cards
 	# (5) good hunting 
 	# (5) poor hunting
 	# (10) ordinary hunting
@@ -117,7 +75,7 @@ class WalrusDeck < Deck
 end
 
 class WinterDeck < Deck
-	attr_accessible :cards
+	attr_accessor :cards
 	# (2) It's still winter
 	# (1) spring
 
@@ -131,7 +89,7 @@ class WinterDeck < Deck
 end
 
 class SealDeck < Deck
-	attr_accessible :cards
+	attr_accessor :cards
 	# (10) seals
 	# (1) your hunter dies
 	# (1) no seals
@@ -147,7 +105,7 @@ class SealDeck < Deck
 end
 
 class Player
-	attr_accessible :soiltrack , :barns, :nursery, :tokens
+	attr_accessor :soiltrack , :barns, :nursery, :tokens
 
 	# Each player starts with the following tokens: 4 persons, 4 sheep, 1 barn, 1 cow, 1 boat
 	# Each player has a SoilTrack, which starts at its most fertile end (99)
@@ -212,7 +170,21 @@ end
 # class EatAllSheep < Strategy
 # end
 
+
+
+
+
+
+
 class Turn
+
+	def initialize(players,yeardeck,walrusdeck,winterdeck,sealdeck)
+		@players = players
+		@yeardeck = yeardeck
+		@walrusdeck = walrusdeck
+		@winterdeck = winterdeck
+		@sealdeck = sealdeck
+	end
 
 	def sequence_point
 		# these are the moments in each season (and thus each turn) when players can trade
@@ -322,7 +294,7 @@ class Turn
 		# taken.
 
 		# Each cow produces 12 food tokens; each sheep produces 8.
-end
+	end
 
 	def fall
 		# Everyone who is in Vinland comes back.  
@@ -412,7 +384,6 @@ end
 	def end_winter_return_tokens
 		@players.each do
 			# something, surely
-		end
 	end
 
 	def next_turn
@@ -428,6 +399,57 @@ end
 
 
 
+
+
+
+
+
+# Greenland: a game for 2-6 players
+class Game
+	attr_accessor :number_players, :treetrack, :players
+
+	def create_players(number_players)
+		@players = []
+		for i in 1..number_players
+			@players << Player.new
+		end
+	end
+
+	def create_decks
+		@yeardeck = YearDeck.new
+		@walrusdeck = WalrusDeck.new
+		@winterdeck = WinterDeck.new
+		@sealdeck = SealDeck.new
+	end
+
+	def shuffle_decks
+		@yeardeck.shuffle! # weird shuffle defined in the YearDeck class
+		@walrusdeck.cards.shuffle!
+		@winterdeck.cards.shuffle!
+		@sealdeck.cards.shuffle!
+		# remember for decks, the first card in the array is the top card
+	end
+
+	def initialize(number_players)
+		@number_players = number_players
+		@treetrack = 99
+			# A *single* tree track, numbered 0-99, with each block of ten marked by
+			# a number from 1-10 (the soil anchoring rate), starts at 99
+		self.create_players(@number_players)
+		self.create_decks
+		self.shuffle_decks
+		# Choose one player to be the dealer by rolling dice for highest. @players.choose_dealer? (first define choose_dealer down in Player)
+		# the tree counter starts at the most trees (99) end of the tree track.
+
+		# loop through turns until the succession card is found
+	end
+
+	def play
+		first_turn = Turn.new(@players,@yeardeck,@walrusdeck,@winterdeck,@sealdeck)
+		first_turn.play
+	end
+
+end
 
 
 
