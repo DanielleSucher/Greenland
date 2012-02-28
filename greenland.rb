@@ -803,13 +803,6 @@ end
 class Game
 	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, :seal_deck, :game_over, :ship_worth_it
 
-	def create_players
-		@players = []
-		for i in 1..@number_players
-			@players << Player.new
-		end
-	end
-
 	def create_decks
 		@year_deck = YearDeck.new
 		@walrus_deck = WalrusDeck.new
@@ -817,16 +810,23 @@ class Game
 		@seal_deck = SealDeck.new
 	end
 
-	def initialize(number_players)
-		@number_players = number_players
+	def initialize
 		@game_over = false
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
 		@ship_worth_it = false
 			# Ship from Norway to trade from ivory. Doesn't show up the first turn, or on later turns where it's not worth it.
-		self.create_players
 		self.create_decks
+	end
+
+	def create_players
+		puts "How many people are playing?"
+		@number_players = gets.chomp.to_i
+		@players = []
+		for i in 1..@number_players
+			@players << Player.new
+		end
 	end
 
 	def name_players
@@ -844,6 +844,7 @@ class Game
 	def play
 		puts "Welcome to Greenland!"
 		puts "The player with the most surviving people and the most silver at the end of the game wins. Good luck!"
+		self.create_players
 		self.name_players # Have players input their names
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
@@ -870,4 +871,4 @@ class Game
 	end
 end
 
-Game.new(1).play
+Game.new.play
