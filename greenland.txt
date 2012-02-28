@@ -77,10 +77,11 @@ Trading: Unless otherwise specified, a player may at any sequence
 point (*) give or trade tokens to any other player.  Trades with immediate
 effect (i.e. one cow right now for three hay right now) may not be
 reneged upon; trades with future effect (one cow now for three hay
-next summer) may be. The exception is people tokens, which may be
-given and traded but which the original owner may retrieve any time
-they are in the settlement (that is, not hunting walrus and not in
-Vinland)
+next summer) may be. 
+
+The exception is people tokens, which may be given and traded but which 
+the original owner may retrieve any time they are in the settlement 
+(that is, not hunting walrus and not in Vinland)
 
 Tokens and buildings are public.
 

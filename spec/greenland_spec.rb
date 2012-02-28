@@ -20,6 +20,10 @@ describe Game do
 			@game.tree_track.should == 99
 		end
 
+		it "shouldn't deem a ship from vinland worth it on the first turn" do
+			@game.ship_worth_it.should == false
+		end
+
 		describe "Decks" do
 			it "should have a Year Deck" do
 				@game.should respond_to(:year_deck)
@@ -222,6 +226,10 @@ describe Player do
 			@player.name.should == ""
 		end
 
+		it "should have no total endgame points" do
+			@player.total_points.should == 0
+		end
+
 		describe "Starting Tokens" do
 			it "should start with a set of tokens" do
 				@player.should respond_to(:tokens)
@@ -239,8 +247,8 @@ describe Player do
 				@player.tokens[:hunting_people].should == 0
 			end
 
-			it "should start with no people working on buildings" do
-				@player.tokens[:building_people].should == 0
+			it "should start with no people working on anything" do
+				@player.tokens[:busy_people].should == 0
 			end
 
 			it "should start with 4 sheep tokens" do
@@ -269,6 +277,18 @@ describe Player do
 
 			it "should start with 0 food tokens" do
 				@player.tokens[:food].should == 0
+			end
+
+			it "should start with 0 ivory tokens" do
+				@player.tokens[:ivory].should == 0
+			end
+
+			it "should start with 0 hay tokens" do
+				@player.tokens[:hay].should == 0
+			end
+
+			it "should start with 0 silver tokens" do
+				@player.tokens[:silver].should == 0
 			end
 		end
 	end

@@ -103,7 +103,7 @@ end
 
 
 class Player
-	attr_accessor :name, :soil_track , :barns, :nursery, :tokens, :barn_animals
+	attr_accessor :name, :soil_track , :barns, :nursery, :tokens, :barn_animals, :total_points
 
 	# Each player starts with the following tokens: 4 persons, 4 sheep, 1 barn, 1 cow, 1 boat
 	# Each player has a SoilTrack, which starts at its most fertile end (99)
@@ -114,20 +114,21 @@ class Player
 		@soil_track = 99
 			# A soil track for each player, numbered 0-99, with each block of ten
 			# marked with a number from 1-10 (the soil fertility level), starts at 99
-		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0, 
-					:food => 0, :vinland_people => 0, :hunting_people => 0, :building_people => 0,
-					:boats_in_vinland => 0, :boats_hunting => 0}
+		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0,
+					:food => 0, :vinland_people => 0, :hunting_people => 0, :busy_people => 0, 
+					:boats_in_vinland => 0, :boats_hunting => 0, :hay => 0, :ivory => 0, :silver => 0 }
 		@name = ""
+		@total_points = 0
 	end
 
 	def build_building(type,people,timber)
 		# Build a barn: this requires six people and six units of timber. 
 		# Build a boat: this requires three people and three units of timber.
-		available_people = self.tokens[:local_people] - self.tokens[:building_people]
+		available_people = self.tokens[:local_people] - self.tokens[:busy_people]
 		if available_people >= people && self.tokens[:timber] >= timber
 			self["#{type}s"] += 1
 			self.tokens[:timber] -= timber
-			self.tokens[:building_people] += people
+			self.tokens[:busy_people] += people
 			print "You've built a #{type}!"
 		else
 			print "Sorry, you don't have the necessary resources to build any more #{type}s."
@@ -137,10 +138,10 @@ class Player
 	def repair_barn
 		# Repair a barn: repairs require one person and one unit of timber.  Any
 		# barns not repaired at the end of this phase (midwinter) are destroyed.  
-		available_people = self.tokens[:local_people] - self.tokens[:building_people]
+		available_people = self.tokens[:local_people] - self.tokens[:busy_people]
 		if available_people >= 1 && self.tokens[:timber] >= 1
 			self.tokens[:timber] -= 1
-			self.tokens[:building_people] += 1
+			self.tokens[:busy_people] += 1
 			print "You've repaired a barn!"
 		else
 			print "Sorry, you don't have the necessary resources to repair any more barns."
@@ -156,24 +157,54 @@ class Turn
 	def initialize(game)
 		@game = game
 		@hunters = []
+		@possible_trades = { "people" => :local_people, "sheep" => :sheep, "cows" => :cows, "boats" => :boats, 
+							"timber" => :timber, "food" => :food, "hay" => :hay, "ivory" => :ivory, "silver" => :silver }
+	end
+
+	def trade(give_or_receive)
+		more_stuff = "y"
+		while more_stuff == "y"
+			print "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
+			kind = gets.chomp
+			print "How many #{kind} tokens are you giving?"
+			count = gets.chomp.to_i
+			give_or_receive[@possible_trades[kind]] = count
+			#loop through what kind / what amount until they're done to determine the give_or_receive array
+			print "Do you want to give any other kind of tokens in this trade? (y/n)"
+			more_stuff = gets.chomp
+		end
 	end
 
 	def sequence_point
 		# these are the moments in each season (and thus each turn) when players can trade
 		print "Players made trade tokens at this point. Please discuss amongst yourselves."
-		print "Do anyone want to request a trade? (y/n)"
+		print "Do anyone want to make a trade? (y/n)"
 		another_trade = gets.chomp
 		while another_trade == "y"
-			# params(other_player, give, receive)
-			# give and receive are arrays of tokens
-			print "Who if the first player involved in this trade?" 
+			@give = {}
+			@receive = {}
+			# figure out what the first player in this trade is trading
+			print "Who is the first player involved in this trade?" 
 			trader_name = gets.chomp
-				#loop through what kind / what amount until they're done to determine the give array
-				#get timing (turns-from-now, season (declare it's the first sequence point in each season for now))
+			@trader = @game.players.select { |player| player.name == trader_name }
+			@trader = @trader[0]
+			self.trade(@give)
+			# figure out what the other player in this trade is trading
 			print "Who is the other player involved in this trade?"
 			tradee_name = gets.chomp
-				#loop through what kind / what amount until they're done to determine the receive array
-				#get timing (turns-from-now, season (declare it's the first sequence point in each season for now))
+			@tradee = @game.players.select { |player| player.name == tradee_name }
+			@tradee = @tradee[0]
+			self.trade(@receive)
+			# actually make the trade happen, don't just save the data!
+			@give.each do |k,v|
+				@tradee[k] += v
+				@trader[k] -= v
+				# deliberately not implementing the ability to call back people who were traded away [yet, possibly ever]
+			end
+			@receive.each do |k,v|
+				@trader[k] += v
+				@tradee[k] -= v
+			end
 			print "Do anyone want to request another trade? (y/n)"
 			another_trade = gets.chomp
 		end 
@@ -201,23 +232,16 @@ class Turn
 					print "Gotcha, no boats #{destination} for you this year!"
 				end
 			else
-				print "Sorry #{player.name}, you don't have any boats to send to Vinland this year."
+				print "Sorry #{player.name}, you don't have any boats to send #{destination} this year."
 			end
 		end
-		print "Now that we know which boats are going, if you didn't send a boat of your own, you can request berth on other players' boats."
-		print "Discuss amongst yourselves until you come to some agreement."
-		# Each player who is not sending a boat
-		# may request that another player carry some of their people; they may
-		# request this of as many players as they like, in any order; they may
-		# take more than one offer.  A boat can hold at most ten people.
 	end
 
 	def spring
 		print "Springtime for Hitler, and Vikings, too!"
 
-		# * sequence point (can trade)
-
-
+		self.sequence_point # players can trade tokens
+		
 		# Each player independently decides if they are going to hunt seals.  
 		@game.players.each do |player|
 			print "Hey #{player.name}, do you want to hunt seals this turn? (y/n)"
@@ -230,18 +254,15 @@ class Turn
 			end
 		end
 
-		# * sequence point (can trade)
-
+		self.sequence_point # players can trade tokens
 
 		# Go around in a circle, starting from the dealer: each player decides
 		# if they are going to send a boat to Vinland.  If they do decide to
-		# send a boat, they must send at least two of their people on it.  Go
-		# around the circle again: each player who is sending a boat says how
-		# many people they are sending.  
+		# send a boat, they must send at least two of their people on it.
 		print "Spring is a great time to send people to Vinland to fetch precious timber."
 		self.send_boats("to Vinland",:vinland_people,:boats_in_vinland)
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		# Draw a card from the seal hunting deck. If seals are drawn, each
 		# player who hunted gains 12 food tokens.  If the hunter dies, discard
@@ -294,24 +315,65 @@ class Turn
 	def summer
 		print "Summer has come."
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		# Each player decides if they are going to hunt walrus and
 		# how many people they will send.  Hunting walrus requires a boat, and
 		# the choosing is run exactly like Vinland.
 		self.send_boats("walrus-hunting",:hunting_people,:boats_hunting)
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
-		# Except on turn 1, or if the trade ship is on the "not worth it" space:
+		if @game.ship_worth_it == true
+			# Except on turn 1, or if the trade ship is on the "not worth it" space:
 
-		# A ship arrives from Norway: players may trade processed ivory tokens
-		# for silver at the rate of 1:1 on a cheap year, 1:2 on an ordinary
-		# year, and 1:3 on an expensive year.  If the players, collectively, do
-		# not trade at least 3 ivory, the ship will not return the next year
-		# (move the trade ship to the "not worth it" space).  Trading happens
-		# in a circle as per Vinland.
+			# A ship arrives from Norway: players may trade processed ivory tokens
+			# for silver at the rate of 1:1 on a cheap year, 1:2 on an ordinary
+			# year, and 1:3 on an expensive year.  
+			if @current_year[:walrus] == "expensive"
+				@exchange_rate = 3
+			elsif @current_year[:walrus] == "ordinary"
+				@exchange_rate = 2
+			else
+				@exchange_rate = 1
+			end
+			print "A ship has arrived from Norway, seeking to trade their silver for your ivory!"
+			print "This year, they're offering you #{@exchange_rate} silver tokens for each ivory token you give them."
+			print "If you don't collectively trade away at least 3 ivory tokens, the ship won't bother returning next year."
 
+			@ivory_traded = 0
+			@game.players.each do |player|
+				if player.tokens[:ivory] > 0
+					print "#{player.name}, you currently have #{player.tokens[:ivory]} ivory tokens."
+					print "How many ivory tokens do you want to trade away this year?"
+					ivory_traded = gets.chomp.to_i
+					if ivory_traded <= player.tokens[:ivory]
+						player.tokens[:ivory] -= ivory_traded
+						silver_received = @exchange_rate * ivory_traded
+						player.tokens[:silver] += silver_received
+						@ivory_traded += ivory_traded
+					else
+						print "Sorry #{player.name}, you don't have that much ivory to trade! Sneaky sneaky, no silver for you!"
+					end
+				else
+					print "Sorry #{player.name}, you don't have any ivory to trade this year."
+				end
+			end
+
+			# If the players, collectively, do not trade at least 3 ivory, the ship 
+			# will not return the next year (move the trade ship to the "not worth it" space).  
+			# Trading happens in a circle as per Vinland.
+			if @ivory_traded < 3
+				print "You didn't trade enough ivory this year to justify the ship coming all the way from Norway!"
+				print "Norway won't be sending a ship your way next year. It's just not worth it to them!"
+				@game.ship_worth_it = false
+			end
+		else 
+			print "No ship is visiting from Norway with silver to trade this year, because you didn't have enough ivory to trade last year."
+			print "Norway will send a ship to check in on your trading availability again next year, just in case."
+			# If the ship didn't stop by this year, set it to stop by next year.
+			@game.ship_worth_it = true
+		end
 
 		# On a warm year, N=4, a temperate year, N=3, and a cold year, N=2.  
 		hay_multiplier = @current_year[:temp]
@@ -404,7 +466,7 @@ class Turn
 			end
 		end
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		# Players may trade sheep for 12 food tokens each or cows for 18.
 		print "It's time to butcher and set aside meat for before winter hits."
@@ -428,15 +490,54 @@ class Turn
 			print "#{player.name} now has #{player.tokens[:food]} total food tokens."
 		end
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		print "If you need more timber than you can import from Vinland, it's now time to cut down trees or deconstruct boats for wood."
-		# Players go around in a circle, starting from the dealer, to cut down a
-		# tree or deconstruct a boat.  The circle continues until everyone
-		# passes; once a player has passed, they may not later decide to cut
-		# down a tree.  Each player may cut up to one tree (or deconstruct up to
-		# one of their boats) per person token, gaining a timber token and, if
-		# cutting a tree, moving the tree counter down one.
+		print "Each player can cut down 1 tree or deconstruct 1 boat per person token, earning 1 timber token per tree or boat destroyed."
+		print "Remember that if you destroy trees, your land will be less fertile, and if you destroy boats, you won't be able to "
+		print "get to Vinland for timber or hunt walrus for food."
+		print "Of course, you can't repair barns or boats without timber, and your livestock will die in the winter if you lack barns."
+		@game.players.each do |player|
+			# Players go around in a circle, starting from the dealer, to cut down a
+			# tree or deconstruct a boat.  The circle continues until everyone
+			# passes; once a player has passed, they may not later decide to cut
+			# down a tree.  Each player may cut up to one tree (or deconstruct up to
+			# one of their boats) per person token, gaining a timber token and, if
+			# cutting a tree, moving the tree counter down one.
+			available_people = player.tokens[:local_people] - player.tokens[:busy_people]
+			print "#{player.name}, you have #{available_people} people available to cut down trees or deconstruct boats."
+			print "You currently have #{player.tokens[:timber]} timber tokens."
+			print "How many trees do you want to cut down?"
+			cut_trees = gets.chomp.to_i
+			if cut_trees > 0
+				# cut down trees
+				if  cut_tree <= available_people
+					cut_trees.times do
+						player.tokens[:timber] += 1
+						@game.tree_track -= 1
+					end
+					print "You now have #{player.tokens[:timber]} timber tokens."
+					print "There are only #{@game.tree_track} trees left in all of Greenland."
+				else
+					print "Sorry #{player.name}, you don't have enough people to do that work for you!"
+				end
+			end
+			print "#{player.name}, you have #{available_people} people available to deconstruct boats."
+			print "How many boats do you want to deconstruct?"
+			deconstruct_boats = gets.chomp.to_i
+			if deconstruct_boats > 0
+				if deconstruct_boats <= available_people
+					# deconstruct boats 
+					deconstruct_boats.times do
+						player.tokens[:timber] += 1
+						player.tokens[:boats] -= 1
+					end
+					print "You now have #{player.tokens[:timber]} timber tokens."
+				else
+					print "Sorry #{player.name}, you don't have enough people to do that work for you!"
+				end
+			end
+		end
 	end
 
 	def return_food(multiplier)
@@ -479,7 +580,7 @@ class Turn
 			print "Hey #{player.name}, your livestock is all grown up. You have #{player.tokens[:sheep]} sheep and #{player.tokens[:cows]} cows."
 		end
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		# Each player may move cows and sheep to their barns.  All cows and
 		# sheep not in barns are returned.  Each barn can hold 6 animals.
@@ -575,22 +676,50 @@ class Turn
 					player.build_building("boat",3,3)
 				end
 			end
-			player.tokens[:building_people] = 0
+			player.tokens[:busy_people] = 0
 		end
 		
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens
 
 		# Determine which player has the most cows (and thus the highest status)
-		@player_cows = Hash.new
-		@players.each do |player|
-			@player_cows[player.name.to_sym] = player.tokens[:cows]
-		end
-
+		@most_cows = @game.players.max_by { |player| player.tokens[:cows] }
 		# The player with the most cows (or, in case of a tie, the most sheep,
 		# then people, then roll a die), chooses the next dealer.
-
-		
-		
+		@cow_tie = @game.players.select { |player| player.tokens[:cows] == @most_cows.tokens[:cows] }
+		if @cow_tie.length > 1
+			# use sheep
+			@most_sheep = @game.players.max_by { |player| player.tokens[:sheep] }
+			@sheep_tie = @game.players.select { |player| player.tokens[:sheep] == @most_sheep.tokens[:sheep] }
+			if @sheep_tie.length > 1
+				# use people
+				@most_people = @game.players.max_by { |player| player.tokens[:local_people] }
+				@people_tie = @game.players.select { |player| player.tokens[:local_people] == @most_sheep.tokens[:local_people] }
+				if @people_tie.length > 1
+					# random
+					@game.players.shuffle!
+				else
+					# stick with people
+					print "Hey #{@most_people.name}, you get to choose - who should be the next dealer?"
+					dealer = gets.chomp
+					index = @game.players.index { |player| player.name = dealer}
+					@game.players.rotate!(index)
+				end
+			else
+				# stick with sheep
+				print "Hey #{@most_sheep.name}, you get to choose - who should be the next dealer?"
+				dealer = gets.chomp
+				index = @game.players.index { |player| player.name = dealer}
+				@game.players.rotate!(index)
+			end
+		else
+			# stick with cows
+			print "Hey #{@most_cows.name}, you get to choose - who should be the next dealer?"
+			dealer = gets.chomp
+			index = @game.players.index { |player| player.name = dealer}
+			@game.players.rotate!(index)
+		end
+		print "#{@game.players.first.name} is the new dealer!"
+		# Refactor! (recursion?)
 	end
 
 	def end_winter
@@ -599,7 +728,7 @@ class Turn
 		# Turn up the top winter card. 
 		still_winter = @game.winter_deck.cards.first[:spring]
 
-		# * sequence point (can trade)
+		self.sequence_point # players can trade tokens)
 
 		until still_winter == false
 			print "It's STILL winter."
@@ -610,7 +739,7 @@ class Turn
 				# outside).  
 				self.return_hay(2,1)
 
-				# Each player returns 1 food token per person token
+				# If it's still winter, each player returns 1 food token per person token
 				self.return_food(1)
 			end
 			# Reshuffle the winter deck. 
@@ -646,7 +775,7 @@ end
 
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, :seal_deck, :game_over
+	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, :seal_deck, :game_over, :ship_worth_it
 
 	def create_players
 		@players = []
@@ -668,6 +797,8 @@ class Game
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
+		@ship_worth_it = false
+			# Ship from Norway to trade from ivory. Doesn't show up the first turn, or on later turns where it's not worth it.
 		self.create_players
 		self.create_decks
 	end
@@ -684,6 +815,8 @@ class Game
 	# create methods for checking the game state (and a game state that sums stuff up), maybe?)
 
 	def play
+		print "Welcome to Greenland!"
+		print "The player with the most surviving people and the most silver at the end of the game wins. Good luck!"
 		self.name_players # Have players input their names
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
@@ -699,7 +832,13 @@ class Game
 		end
 		# When the succession card is revealed, @turn.game_over should become true and the turn will end.
 		# The game is now over.
-		# Return all people to their original players. 
+		# deliberately not implementing the ability to call back people who were traded away [yet, possibly ever]
+		# Determine how many total points each player has (total count of silver tokens plus person tokens)
+		@players.each do |player|
+			player.total_points = player.tokens[:silver] + player.tokens[:local_people]
+		end
 		# The player with any surviving people and the most silver wins.
+		@winner = @players.max_by { |player| player.total_points }
+		print "#{@winner.name} wins!"
 	end
 end
