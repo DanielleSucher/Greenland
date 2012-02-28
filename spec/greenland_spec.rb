@@ -20,10 +20,6 @@ describe Game do
 			@game.tree_track.should == 99
 		end
 
-		it "should keep track of trades" do
-			@game.should respond_to(:trades)
-		end
-
 		describe "Decks" do
 			it "should have a Year Deck" do
 				@game.should respond_to(:year_deck)
@@ -255,6 +251,14 @@ describe Player do
 				@player.tokens[:boats].should == 1
 			end
 
+			it "should start with no boats in vinland" do
+				@player.tokens[:boats_in_vinland].should == 0
+			end
+
+			it "should start with no boats in off hunting" do
+				@player.tokens[:boats_hunting].should == 0
+			end
+
 			it "should start with 0 timber tokens" do
 				@player.tokens[:timber].should == 0
 			end
@@ -272,22 +276,22 @@ describe Turn do
 
 		before(:each) do 
 			@game = Game.new(3)
-			@turn = Turn.new(@game.tree_track,@game.players,@game.year_deck,@game.walrus_deck,@game.winter_deck,@game.seal_deck,@game.trades)
+			@turn = Turn.new(@game)
 		end
 
 		it "should default to the game not being over yet" do
-			@turn.game_over.should == false
+			@turn.game.game_over.should == false
 		end
 
 		it "should become game_over==true when the succession card is revealed" do
-			@turn.year_deck.cards.delete( { :succession => true} )
-			@turn.year_deck.cards.unshift( { :succession => true} )
+			@turn.game.year_deck.cards.delete( { :succession => true} )
+			@turn.game.year_deck.cards.unshift( { :succession => true} )
 			@turn.play
-			@turn.game_over.should == true
+			@turn.game.game_over.should == true
 		end
 
-		it "should initialize instance variables from the game's instance variables" do
-			@turn.players.should == @game.players
+		it "should access the game's instance variables" do
+			@turn.game.players.should == @game.players
 		end
 	end
 end
