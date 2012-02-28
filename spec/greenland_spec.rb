@@ -3,54 +3,67 @@ require 'greenland'
 
 describe Game do
 
-	before(:each) do
-		@game = Game.new(3)
+	describe "New Game" do
+		before(:each) do
+			@game = Game.new(3)
+		end
+
+		it "should have some number of players" do
+			@game.should respond_to(:number_players)
+		end
+
+		it "should have the right number of players" do
+			@game.players.count.should == 3
+		end
+
+		it "should have a tree track starting at 99" do
+			@game.tree_track.should == 99
+		end
+
+		it "should keep track of trades" do
+			@game.should respond_to(:trades)
+		end
+
+		describe "Decks" do
+			it "should have a Year Deck" do
+				@game.should respond_to(:year_deck)
+			end
+
+			it "should have 21 cards in its Year Deck" do
+				@game.year_deck.cards.size.should == 21
+			end
+
+			it "should have a Walrus Deck" do
+				@game.should respond_to(:walrus_deck)
+			end
+
+			it "should have 21 cards in its Walrus Deck" do
+				@game.walrus_deck.cards.size.should == 21
+			end
+
+			it "should have a Winter Deck" do
+				@game.should respond_to(:winter_deck)
+			end
+
+			it "should have 3 cards in its Winter Deck" do
+				@game.winter_deck.cards.size.should == 3
+			end
+
+			it "should have a Seal Deck" do
+				@game.should respond_to(:seal_deck)
+			end
+
+			it "should have 12 cards in its Seal Deck" do
+				@game.seal_deck.cards.size.should == 12
+			end
+		end
 	end
 
-	it "should have some number of players" do
-		@game.should respond_to(:number_players)
-	end
-
-	it "should have the right number of players" do
-		@game.players.count.should == 3
-	end
-
-	it "should have a tree track starting at 99" do
-		@game.tree_track.should == 99
-	end
-
-	describe "Decks" do
-		it "should have a Year Deck" do
-			@game.should respond_to(:year_deck)
-		end
-
-		it "should have 21 cards in its Year Deck" do
-			@game.year_deck.cards.size.should == 21
-		end
-
-		it "should have a Walrus Deck" do
-			@game.should respond_to(:walrus_deck)
-		end
-
-		it "should have 21 cards in its Walrus Deck" do
-			@game.walrus_deck.cards.size.should == 21
-		end
-
-		it "should have a Winter Deck" do
-			@game.should respond_to(:winter_deck)
-		end
-
-		it "should have 3 cards in its Winter Deck" do
-			@game.winter_deck.cards.size.should == 3
-		end
-
-		it "should have a Seal Deck" do
-			@game.should respond_to(:seal_deck)
-		end
-
-		it "should have 12 cards in its Seal Deck" do
-			@game.seal_deck.cards.size.should == 12
-		end
+	describe "Play Game" do
+		# Game methods to test: 
+		# play
+		# update_game_variables
+		# name_players
 	end
 end
 
@@ -193,8 +206,24 @@ describe Player do
 			@player.barns.should == 1
 		end
 
-		it "should start with nothing in its nursery" do
-			@player.nursery.should == 0
+		it "should start with no baby sheep" do
+			@player.nursery[:sheep].should == 0
+		end
+
+		it "should start with no baby cows" do
+			@player.nursery[:cows].should == 0
+		end
+
+		it "should start with no sheep living indoors" do
+			@player.barn_animals[:sheep].should == 0
+		end
+
+		it "should start with no cows living indoors" do
+			@player.barn_animals[:cows].should == 0
+		end
+
+		it "should have a blank name" do
+			@player.name.should == ""
 		end
 
 		describe "Starting Tokens" do
@@ -208,6 +237,10 @@ describe Player do
 
 			it "should start with no people in vinland" do
 				@player.tokens[:vinland_people].should == 0
+			end
+
+			it "should start with no people hunting" do
+				@player.tokens[:hunting_people].should == 0
 			end
 
 			it "should start with 4 sheep tokens" do
@@ -225,6 +258,36 @@ describe Player do
 			it "should start with 0 timber tokens" do
 				@player.tokens[:timber].should == 0
 			end
+
+			it "should start with 0 food tokens" do
+				@player.tokens[:food].should == 0
+			end
+		end
+	end
+end
+
+describe Turn do
+
+	describe "New Turn" do
+
+		before(:each) do 
+			@game = Game.new(3)
+			@turn = Turn.new(@game.tree_track,@game.players,@game.year_deck,@game.walrus_deck,@game.winter_deck,@game.seal_deck,@game.trades)
+		end
+
+		it "should default to the game not being over yet" do
+			@turn.game_over.should == false
+		end
+
+		it "should become game_over==true when the succession card is revealed" do
+			@turn.year_deck.cards.delete( { :succession => true} )
+			@turn.year_deck.cards.unshift( { :succession => true} )
+			@turn.play
+			@turn.game_over.should == true
+		end
+
+		it "should initialize instance variables from the game's instance variables" do
+			@turn.players.should == @game.players
 		end
 	end
 end
