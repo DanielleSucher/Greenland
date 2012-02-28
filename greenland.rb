@@ -115,56 +115,37 @@ class Player
 			# A soil track for each player, numbered 0-99, with each block of ten
 			# marked with a number from 1-10 (the soil fertility level), starts at 99
 		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0, 
-					:food => 0, :vinland_people => 0, :hunting_people => 0, :boats_in_vinland => 0, :boats_hunting => 0}
+					:food => 0, :vinland_people => 0, :hunting_people => 0, :building_people => 0,
+					:boats_in_vinland => 0, :boats_hunting => 0}
 		@name = ""
 	end
 
-	def build_barn
-	# Build a barn: this requires six people and six units of timber. 
-		if self.tokens[:local_people] >= 6 && self.tokens[:timber] >= 6 
-			self.barns += 1
-			print "You've built a barn!"
+	def build_building(type,people,timber)
+		# Build a barn: this requires six people and six units of timber. 
+		# Build a boat: this requires three people and three units of timber.
+		available_people = self.tokens[:local_people] - self.tokens[:building_people]
+		if available_people >= people && self.tokens[:timber] >= timber
+			self["#{type}s"] += 1
+			self.tokens[:timber] -= timber
+			self.tokens[:building_people] += people
+			print "You've built a #{type}!"
 		else
-			print "Sorry, you don't have the necessary resources to build a barn."
-		end
-	end
-
-	def build_boat
-	# Build a boat: this requires three people and three units of timber.
-		if self.tokens[:local_people] >= 3 && self.tokens[:timber] >= 3
-			self.tokens[:boats] += 1
-			print "You've built a boat!"
-		else
-			print "Sorry, you don't have the necessary resources to build a boat."
+			print "Sorry, you don't have the necessary resources to build any more #{type}s."
 		end
 	end
 
 	def repair_barn
 		# Repair a barn: repairs require one person and one unit of timber.  Any
-		# barns not repaired at the end of this phase (midwinter) are destroyed.  A Player
-		# may, with the consent of the other player, repair another player's barn.
-		if self.tokens[:local_people] >= 1 && self.tokens[:timber] >= 1
-			# what does this really mean?
+		# barns not repaired at the end of this phase (midwinter) are destroyed.  
+		available_people = self.tokens[:local_people] - self.tokens[:building_people]
+		if available_people >= 1 && self.tokens[:timber] >= 1
+			self.tokens[:timber] -= 1
+			self.tokens[:building_people] += 1
 			print "You've repaired a barn!"
 		else
-			print "Sorry, you don't have the necessary resources to repair a barn."
+			print "Sorry, you don't have the necessary resources to repair any more barns."
 		end
 	end
-
-	#include all the rules on trading tokens here, or in turn?
-
-	# Trading: Unless otherwise specified, a player may at any sequence
-	# point (*) give or trade tokens to any other player.  
-
-	# Trades with immediate
-	# effect (i.e. one cow right now for three hay right now) may not be
-	# reneged upon; trades with future effect (one cow now for three hay
-	# next summer) may be. 
-
-	# The exception is people tokens, which may be
-	# given and traded but which the original owner may retrieve any time
-	# they are in the settlement (that is, not hunting walrus and not in
-	# Vinland)
 end
 
 
@@ -449,6 +430,7 @@ class Turn
 
 		# * sequence point (can trade)
 
+		print "If you need more timber than you can import from Vinland, it's now time to cut down trees or deconstruct boats for wood."
 		# Players go around in a circle, starting from the dealer, to cut down a
 		# tree or deconstruct a boat.  The circle continues until everyone
 		# passes; once a player has passed, they may not later decide to cut
@@ -478,8 +460,7 @@ class Turn
 			print "#{player.name} has #{player.tokens[:hay]} hay tokens left."
 		else
 			# If at any time during the end of winter, a player is required to return hay
-			# tokens but does not return one, they must return all of their sheep
-			# and cow tokens. 
+			# tokens but does not return one, they must return all of their sheep and cow tokens. 
 			player.tokens[:cows] = 0
 			player.tokens[:sheep] = 0
 			print "Sorry #{player.name}, you didn't have enough hay, so all your sheep and cows died."
@@ -562,24 +543,54 @@ class Turn
 		# Players go around in a circle, starting from the dealer, deciding on
 		# building actions.  Each person token may only participate in a single
 		# building action.  The building actions are:
-
-		# Build a barn: this requires six people and six units of timber. 
+ 
 		print "Mid-winter is a great time to have your people build or repair barns and boats."
 		print "Each of your people can only work on one building or repair task this year."
+		print "Any barns not repaired will be destroyed by the ravages of winter."
 		@game.players.each do |player|
-			print "#{player.name}, do you want to build a barn?"
+			# Repair a barn: repairs require one person and one unit of timber.  Any
+			# barns not repaired at the end of this phase are destroyed.  
+			# (Currently not letting players repair other players' barns. Maybe add to rules later.)
+			print "#{player.name}, how many of your #{player.barns} do you want to repair this year?"
+			answer = gets.chomp.to_i
+			if answer != 0
+				answer.times do
+					player.repair_barn
+				end
+			end
+			player.barns = answer
+			# Build a barn: this requires six people and six units of timber.
+			print "#{player.name}, how many barns do you want to build this year?"
+			answer = gets.chomp.to_i
+			if answer != 0
+				answer.times do
+					player.build_building("barn",6,6)
+				end
+			end
+			# Build a boat: this requires three people and three units of timber.
+			print "#{player.name}, how many boats do you want to build this year?"
+			answer = gets.chomp.to_i
+			if answer != 0
+				answer.times do
+					player.build_building("boat",3,3)
+				end
+			end
+			player.tokens[:building_people] = 0
 		end
-
-		# Build a boat: this requires three people and three units of timber.
-
-		# Repair a barn: repairs require one person and one unit of timber.  Any
-		# barns not repaired at the end of this phase are destroyed.  A Player
-		# may, with the consent of the other player, repair another player's barn.
-
+		
 		# * sequence point (can trade)
+
+		# Determine which player has the most cows (and thus the highest status)
+		@player_cows = Hash.new
+		@players.each do |player|
+			@player_cows[player.name.to_sym] = player.tokens[:cows]
+		end
 
 		# The player with the most cows (or, in case of a tie, the most sheep,
 		# then people, then roll a die), chooses the next dealer.
+
+		
+		
 	end
 
 	def end_winter
@@ -651,14 +662,6 @@ class Game
 		@seal_deck = SealDeck.new
 	end
 
-	def shuffle_decks
-		@year_deck.shuffle! # weird shuffle defined in the YearDeck class
-		@walrus_deck.cards.shuffle!
-		@winter_deck.cards.shuffle!
-		@seal_deck.cards.shuffle!
-		# remember for decks, the first card in the array is the top card
-	end
-
 	def initialize(number_players)
 		@number_players = number_players
 		@game_over = false
@@ -667,7 +670,6 @@ class Game
 			# a number from 1-10 (the soil anchoring rate), starts at 99
 		self.create_players
 		self.create_decks
-		self.shuffle_decks
 	end
 
 	def name_players
@@ -686,6 +688,8 @@ class Game
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
 		print "#{@players.first.name} is the dealer, for now."
+		@year_deck.shuffle! # weird shuffle defined in the YearDeck class
+		# remember for decks, the first card in the array is the top card
 		@turn = Turn.new(self)
 		# loop through turns until the succession card is found
 		until @game_over == true

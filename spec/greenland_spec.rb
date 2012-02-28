@@ -239,6 +239,10 @@ describe Player do
 				@player.tokens[:hunting_people].should == 0
 			end
 
+			it "should start with no people working on buildings" do
+				@player.tokens[:building_people].should == 0
+			end
+
 			it "should start with 4 sheep tokens" do
 				@player.tokens[:sheep].should == 4
 			end
@@ -291,6 +295,7 @@ describe Turn do
 		end
 
 		it "should access the game's instance variables" do
+			@turn.game.players << Player.new
 			@turn.game.players.should == @game.players
 		end
 	end
