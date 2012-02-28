@@ -319,4 +319,24 @@ describe Turn do
 			@turn.game.players.should == @game.players
 		end
 	end
+
+	describe "Spring" do
+
+		before(:each) do 
+			@game = Game.new(3)
+			@game.players[0].name = "Ann"
+			@game.players[1].name = "Ben"
+			@game.players[2].name = "Cat"
+			@game.players.shuffle!
+			@turn = Turn.new(@game)
+		end
+
+
+
+	end
 end
+
+
+
+
+
