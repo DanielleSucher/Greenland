@@ -257,7 +257,7 @@ class Turn
 		# send a boat, they must send at least two of their people on it.  Go
 		# around the circle again: each player who is sending a boat says how
 		# many people they are sending.  
-		print "Spring is a great time to send people to Vinland for ivory and such."
+		print "Spring is a great time to send people to Vinland to fetch precious timber."
 		self.send_boats("to Vinland",:vinland_people,:boats_in_vinland)
 
 		# * sequence point (can trade)
@@ -390,35 +390,36 @@ class Turn
 			end
 		end
 
-		# Everyone who was hunting walrus comes back.  Draw a card from the
-		# walrus deck -- if it was a good walrus year, each person returns with
-		# five ivory tokens; a bad year, three, an ordinary year, two. (Makes no sense. Changed as per below.)
-		
-		print "All of your people who were off hunting walrus have returned."
+		# Everyone who was hunting walrus comes back.  Draw a card from the walrus deck. 
 		@game.walrus_deck.cards.shuffle!
 		@walrus_year = @game.walrus_deck.cards.first 
-		@game.players.each do |player| 
-			if player.tokens[:hunting_people] > 0
-				ivory_earned = 0
-				if @walrus_year[:storm] == true
-					# If the storm card is drawn, all of the people on the walrus boats, and the boats, are returned.
+		if @walrus_year[:storm] == true
+			print "There was a storm and your walrus hunters and their boats were lost at sea."
+			@game.players.each do |player|
+				# If the storm card is drawn, all of the people on the walrus boats, and the boats, are returned.
+				player.tokens[:hunting_people] = 0
+				player.tokens[:boats_hunting] = 0
+			end
+		else
+			print "Hooray, all your hunters made it home safely from the walrus mines!"
+			# If it was a good walrus year, each person returns with five ivory tokens; 
+			# a bad year, three, an ordinary year, two. (Makes no sense. Changed as per below.)
+			if @walrus_year[:hunting] == "ordinary"
+				ivory_earned = 3 * player.tokens[:hunting_people]
+			elsif @walrus_year[:hunting] == "good"
+				ivory_earned = 5 * player.tokens[:hunting_people]
+			else
+				ivory_earned = 2 * player.tokens[:hunting_people]
+			end
+			@game.players.each do |player|
+				if player.tokens[:hunting_people] > 0
+					# Gain ivory_earned units of timber per person sent to hunt walrus.
+					ivory_earned = ivory_earned * player.tokens[:hunting_people]
+					player.tokens[:ivory] +=  ivory_earned
+					player.tokens[:local_people] += player.tokens[:hunting_people]
 					player.tokens[:hunting_people] = 0
-					
-				else
-					if @walrus_year[:hunting] == "ordinary"
-						ivory_earned = 3 * player.tokens[:hunting_people]
-					elsif @walrus_year[:hunting] == "good"
-						ivory_earned = 5 * player.tokens[:hunting_people]
-					else
-						ivory_earned = 2 * player.tokens[:hunting_people]
-					end
+					print "#{player.name} has earned #{ivory_earned} ivory tokens."
 				end
-				# Gain 2 units of timber per person.
-				timber_earned = 2 * player.tokens[:vinland_people]
-				player.tokens[:timber] +=  timber_earned
-				print "#{player.name} now has #{player.tokens[:timber]} total timber tokens."
-				player.tokens[:local_people] += player.tokens[:vinland_people]
-				player.tokens[:vinland_people] = 0
 			end
 		end
 
