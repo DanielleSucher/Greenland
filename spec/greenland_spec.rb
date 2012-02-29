@@ -17,6 +17,10 @@ describe Game do
 			@game.ship_worth_it.should == false
 		end
 
+		it "should start on turn 1" do
+			@game.current_turn.should be == 1
+		end
+
 		describe "Decks" do
 			it "should have a Year Deck" do
 				@game.should respond_to(:year_deck)
@@ -409,6 +413,7 @@ describe Turn do
 				@turn.game.players[1].nursery[:cows].should be == 1
 				@turn.game.players[2].nursery[:sheep].should be == 4
 				@turn.game.players[2].nursery[:cows].should be == 1
+				@turn.season.should be == "spring"
 			end
 		end
 	end
@@ -417,6 +422,14 @@ describe Turn do
 
 		before(:each) do
 			@turn.current_year = { :temp => "warm" }
+		end
+
+		it "should have the gamestate reflect that it is summer" do
+			InputFaker.with_fake_input(["n","0","0","0","n","0","0","0"]) do
+				@turn.summer
+				@game.ship_worth_it.should be == true # should set it to true after a year when it was false
+				@turn.season.should be == "summer"
+			end
 		end
 
 		it "should allow for walrus-hunting" do
@@ -431,7 +444,7 @@ describe Turn do
 			end
 		end
 
-		it "not have a ship from Norway on the first turn" do
+		it "should not have a ship from Norway on the first turn" do
 			InputFaker.with_fake_input(["n","0","0","0","n","0","0","0"]) do
 				@turn.summer
 				@game.ship_worth_it.should be == true # should set it to true after a year when it was false
@@ -469,6 +482,14 @@ describe Turn do
 	end
 
 	describe "Autumn" do
+
+		it "should have the gamestate reflect that it is autumn" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@turn.game.players[0].tokens[:vinland_people] = 1
+				@turn.autumn
+				@turn.season.should be == "autumn"
+			end
+		end
 
 		it "should return people previously sent to Vinland" do
 			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
@@ -554,6 +575,14 @@ describe Turn do
 			end
 		end
 
+		it "should have the gamestate reflect that it is early winter" do
+			InputFaker.with_fake_input(["n","2","0","0","1","0","1","y","y","n"]) do
+				@turn.game.players[2].tokens[:food] = 0
+				@turn.early_winter
+				@turn.season.should be == "early_winter"
+			end
+		end
+
 		it "should have all baby livestock grow up" do
 			InputFaker.with_fake_input(["n","5","1","4","2","4","1","y","y","y"]) do
 				@turn.game.players[0].nursery[:sheep] = 1
@@ -629,6 +658,18 @@ describe Turn do
 			end
 		end
 
+		it "should have the gamestate reflect that it is mid_winter" do
+			InputFaker.with_fake_input(["1","0","2","0","2","0","0","0","1","n","Ben"]) do
+				# repair_barn/build_barn/build_boat
+				# 0: "1","0","2" (shouldn't have enough timber for the boats)
+				# 1: "0","2","0"
+				# 2: "0","0","1"
+				@turn.game.players[0].tokens[:local_people] = 12
+				@turn.mid_winter
+				@turn.season.should be == "mid_winter"
+			end
+		end
+
 		it "should build/repair the right number of boats/barns" do
 			InputFaker.with_fake_input(["1","0","2","0","2","0","0","0","1","n","Ann"]) do
 				# repair_barn/build_barn/build_boat
@@ -660,6 +701,23 @@ describe Turn do
 				@turn.game.players[0].tokens[:local_people] = 12
 				@turn.mid_winter
 				@turn.game.players[0].name.should be == "Ben"
+			end
+		end
+	end
+
+	describe "End Winter" do
+
+		before(:each) do
+			@turn.game.players.each do |player|
+				player.tokens[:hay] = 80
+				player.tokens[:food] = 80
+			end
+		end
+
+		it "should have the gamestate reflect that it is end_winter" do
+			InputFaker.with_fake_input(["n"]) do
+				@turn.end_winter
+				@turn.season.should be == "end_winter"
 			end
 		end
 	end

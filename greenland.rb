@@ -156,10 +156,11 @@ end
 
 
 class Turn
-	attr_accessor :game, :hunters, :check_for_seals, :ivory_traded, :current_year
+	attr_accessor :game, :hunters, :check_for_seals, :ivory_traded, :current_year, :season
 
 	def initialize(game)
 		@game = game
+		@season = ""
 		@hunters = []
 		@possible_trades = { "people" => :local_people, "sheep" => :sheep, "cows" => :cows, "boats" => :boats, 
 							"timber" => :timber, "food" => :food, "hay" => :hay, "ivory" => :ivory, "silver" => :silver }
@@ -254,6 +255,7 @@ class Turn
 	end
 
 	def spring
+		@season = "spring"
 		puts "Springtime for Hitler, and Vikings, too!"
 
 		self.sequence_point # players can trade tokens
@@ -332,6 +334,7 @@ class Turn
 
 
 	def summer
+		@season = "summer"
 		puts "Summer has come."
 
 		self.sequence_point # players can trade tokens
@@ -447,6 +450,7 @@ class Turn
 	end
 
 	def autumn
+		@season = "autumn"
 		puts "Autumn has come."
 
 		# Everyone who is in Vinland comes back. 
@@ -611,6 +615,7 @@ class Turn
 	end
 
 	def early_winter
+		@season = "early_winter"
 		puts "Winter is coming."
 
 		#  Remove all the cows and sheep from the nursery.
@@ -692,6 +697,7 @@ class Turn
 	end
 
 	def mid_winter
+		@season = "mid_winter"
 		puts "And now we're in the depths of winter."
 		
 		# Players go around in a circle, starting from the dealer, deciding on
@@ -770,6 +776,7 @@ class Turn
 	end
 
 	def end_winter
+		@season = "end_winter"
 		puts "How long can this winter really last? We'll find out..."
 
 		# Turn up the top winter card. 
@@ -823,7 +830,7 @@ end
 # Greenland: a game for 2-6 players
 class Game
 	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, 
-				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners
+				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -839,6 +846,7 @@ class Game
 			# a number from 1-10 (the soil anchoring rate), starts at 99
 		@ship_worth_it = false
 			# Ship from Norway to trade from ivory. Doesn't show up the first turn, or on later turns where it's not worth it.
+		@current_turn = 1 # The game starts on turn 1, of course!
 		self.create_decks
 	end
 
@@ -881,6 +889,7 @@ class Game
 		# loop through turns until the succession card is found
 		until @game_over == true
 			@turn.play
+			@current_turn += 1 # Keeps track of which turn it is, incrementing after each turn is played
 			# moar turns
 			@turn = Turn.new(self)
 		end
