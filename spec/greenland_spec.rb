@@ -1,19 +1,12 @@
 $:.unshift File.expand_path('.')
 require 'greenland'
+require 'input_faker'
 
 describe Game do
 
 	describe "New Game" do
 		before(:each) do
-			@game = Game.new(3)
-		end
-
-		it "should have some number of players" do
-			@game.should respond_to(:number_players)
-		end
-
-		it "should have the right number of players" do
-			@game.players.count.should == 3
+			@game = Game.new
 		end
 
 		it "should have a tree track starting at 99" do
@@ -296,12 +289,18 @@ end
 
 describe Turn do
 
-	describe "New Turn" do
-
-		before(:each) do 
-			@game = Game.new(3)
+	before(:each) do 
+			@game = Game.new
+			@game.players = []
+			3.times { @game.players << Player.new }
+			@game.players[0].name = "Ann"
+			@game.players[1].name = "Ben"
+			@game.players[2].name = "Cat"
+			@game.players.shuffle!
 			@turn = Turn.new(@game)
-		end
+	end
+
+	describe "New Turn" do
 
 		it "should default to the game not being over yet" do
 			@turn.game.game_over.should == false
@@ -311,30 +310,293 @@ describe Turn do
 			@turn.game.year_deck.cards.delete( { :succession => true} )
 			@turn.game.year_deck.cards.unshift( { :succession => true} )
 			@turn.play
-			@turn.game.game_over.should == true
+			@turn.game.game_over.should be == true
+			@game.game_over.should be == true
 		end
 
 		it "should access the game's instance variables" do
 			@turn.game.players << Player.new
-			@turn.game.players.should == @game.players
+			@turn.game.players[3].name = "Dave"
+			@game.players[3].name.should == "Dave"
+		end
+	end
+
+	describe "Sequence Point" do
+
+		it "should allow trading to happen" do
+			InputFaker.with_fake_input(["y","Ann","sheep","1","n","Ben","cows","1","n","n"]) do
+				@turn.game.players[0].name = "Ann"
+				@turn.game.players[1].name = "Ben"
+				@turn.game.players[2].name = "Cat"
+				@turn.sequence_point
+				@turn.game.players[0].tokens[:sheep].should be == 3
+				@turn.game.players[0].tokens[:cows].should be == 2
+				@turn.game.players[1].tokens[:sheep].should be == 5
+				@turn.game.players[1].tokens[:cows].should be == 0
+			end
 		end
 	end
 
 	describe "Spring" do
 
-		before(:each) do 
-			@game = Game.new(3)
-			@game.players[0].name = "Ann"
-			@game.players[1].name = "Ben"
-			@game.players[2].name = "Cat"
-			@game.players.shuffle!
-			@turn = Turn.new(@game)
+		it "should allow for vinland-sailing, seal-hunting, and babies" do
+			InputFaker.with_fake_input(["n","n","n","y","n","1","2","0","0","n"]) do
+				@turn.spring
+				# Player 3 should send someone off to hunt seal
+				@turn.hunters.should include(@turn.game.players[2].name)
+				# The other plays should not send anyone off to hunt seal
+				@turn.hunters.should_not include(@turn.game.players[0].name)
+				@turn.hunters.should_not include(@turn.game.players[1].name)
+				# Player 1 should send 2 people and 1 boat to Vinland.
+				@turn.game.players[0].tokens[:local_people].should be == 3 
+				@turn.game.players[0].tokens[:vinland_people].should be == 2
+				@turn.game.players[0].tokens[:boats].should be == 0
+				@turn.game.players[0].tokens[:boats_in_vinland].should be == 1
+				# Player 2 shouldn't send anyone to Vinland.
+				@turn.game.players[1].tokens[:local_people].should be == 5
+				@turn.game.players[1].tokens[:vinland_people].should be == 0
+				@turn.game.players[1].tokens[:boats].should be == 1
+				@turn.game.players[1].tokens[:boats_in_vinland].should be == 0
+				# Player 3 should get the right results from seal-hunting
+				# if @turn.check_for_seals[:hunterdies] == true
+				# 	@turn.game.players[2].tokens[:local_people].should be == 4
+				# else
+				# 	@turn.game.players[2].tokens[:local_people].should be == 5
+				# 	if @check_for_seals[:seals] == true
+				# 		@turn.game.players[2].tokens[:food].should be == 12
+				# 	else
+				# 		@turn.game.players[2].tokens[:food].should be == 0
+				# 	end
+				# end
+				# Non-hunting players should earn no food no matter what
+				@turn.game.players[0].tokens[:food].should be == 0
+				@turn.game.players[1].tokens[:food].should be == 0
+				# all players should gain 1 baby sheep or cow per adult of each
+				@turn.game.players[0].nursery[:sheep].should be == 4
+				@turn.game.players[0].nursery[:cows].should be == 1
+				@turn.game.players[1].nursery[:sheep].should be == 4
+				@turn.game.players[1].nursery[:cows].should be == 1
+				@turn.game.players[2].nursery[:sheep].should be == 4
+				@turn.game.players[2].nursery[:cows].should be == 1
+			end
+		end
+	end
+
+	describe "Summer" do
+
+		before(:each) do
+			@turn.current_year = { :temp => "warm" }
+		end
+
+		it "should allow for walrus-hunting" do
+			InputFaker.with_fake_input(["n","0","1","2","0","n","0","0","0"]) do
+				@turn.summer
+				@turn.game.players[1].tokens[:boats].should be == 0
+				@turn.game.players[1].tokens[:boats_hunting].should be == 1
+				@turn.game.players[0].tokens[:boats].should be == 1
+				@turn.game.players[0].tokens[:boats_hunting].should be == 0
+				@turn.game.players[2].tokens[:boats].should be == 1
+				@turn.game.players[2].tokens[:boats_hunting].should be == 0
+			end
+		end
+
+		it "not have a ship from Norway on the first turn" do
+			InputFaker.with_fake_input(["n","0","0","0","n","0","0","0"]) do
+				@turn.summer
+				@game.ship_worth_it.should be == true # should set it to true after a year when it was false
+				@turn.ivory_traded.should be_nil
+			end
+		end
+
+		it "should allow for ivory-trading" do
+			InputFaker.with_fake_input(["n","0","0","0","n","1","2","0","0","0"]) do
+				@game.ship_worth_it = true
+				@turn.game.players[1].tokens[:ivory] = 1
+				@turn.game.players[2].tokens[:ivory] = 1
+				@turn.summer
+				@turn.game.players[1].tokens[:ivory].should be == 0
+				@turn.game.players[1].tokens[:silver].should be > 0
+				@turn.game.players[2].tokens[:ivory].should be == 1
+				@turn.game.players[2].tokens[:silver].should be == 0
+				@turn.game.players[0].tokens[:ivory].should be == 0
+				@turn.game.players[0].tokens[:silver].should be == 0
+				@game.ship_worth_it.should be == false
+			end
+		end
+
+		it "should effect the correct hay/soil repercussions" do
+			InputFaker.with_fake_input(["n","0","0","0","n","0","5","30"]) do
+				@turn.summer
+				@turn.game.players[0].tokens[:hay].should be == 0
+				@turn.game.players[1].tokens[:hay].should be == 5
+				@turn.game.players[2].tokens[:hay].should be == 30
+				@turn.game.players[0].soil_track.should be == 99
+				@turn.game.players[1].soil_track.should be == 98
+				@turn.game.players[2].soil_track.should be == 89
+			end
+		end
+	end
+
+	describe "Autumn" do
+
+		it "should return people previously sent to Vinland" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@turn.game.players[0].tokens[:vinland_people] = 1
+				@turn.autumn
+				@turn.game.players[0].tokens[:vinland_people].should be == 0
+				@turn.game.players[0].tokens[:local_people].should be == 5
+				@turn.game.players[1].tokens[:local_people].should be == 4
+			end
+		end
+
+		it "should kill all hunters if there was a storm" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@game.walrus_deck.cards = [ { :storm => true } ]
+				@turn.game.players[0].tokens[:hunting_people] = 1
+				@turn.game.players[0].tokens[:local_people] = 3
+				@turn.autumn
+				@turn.game.players[0].tokens[:hunting_people].should be == 0
+				@turn.game.players[0].tokens[:local_people].should be == 3
+				@turn.game.players[1].tokens[:local_people].should be == 4
+			end
+		end
+
+		it "should give hunters the right amount of ivory" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@turn.game.walrus_deck.cards = [ { :hunting => "good" } ]
+				@turn.game.players[0].tokens[:hunting_people] = 1
+				@turn.game.players[0].tokens[:local_people] = 3
+				@turn.autumn
+				@turn.game.players[0].tokens[:hunting_people].should be == 0
+				@turn.game.players[0].tokens[:local_people].should be == 4
+				@turn.game.players[0].tokens[:ivory].should be == 5
+				@turn.game.players[1].tokens[:local_people].should be == 4
+				@turn.game.players[1].tokens[:ivory].should be == 0
+			end
+		end
+
+		it "should handle butchering correctly" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@turn.autumn
+				# butchering
+				# 0: "n","n",
+				# 1: "n","y","1",
+				# 2: "y","2","n",
+				@turn.game.players[0].tokens[:sheep].should be == 4
+				@turn.game.players[0].tokens[:cows].should be == 1
+				@turn.game.players[0].tokens[:food].should be == 0
+				@turn.game.players[1].tokens[:sheep].should be == 4
+				@turn.game.players[1].tokens[:cows].should be == 0
+				@turn.game.players[1].tokens[:food].should be == 18
+				@turn.game.players[2].tokens[:sheep].should be == 2
+				@turn.game.players[2].tokens[:cows].should be == 1
+				@turn.game.players[2].tokens[:food].should be == 24
+			end
 		end
 
 
+		it "should handle tree/boat destroying correctly" do
+			InputFaker.with_fake_input(["n","n","n","n","y","1","y","2","n","n","2","0","1","0","0","1"]) do
+				@turn.autumn
+				# trees/boats
+				# 0: "2","0"
+				# 1: "1","0"
+				# 2: "0","1"
+				@turn.game.players[0].tokens[:boats].should be == 1
+				@turn.game.players[0].tokens[:timber].should be == 2
+				@turn.game.players[1].tokens[:boats].should be == 1
+				@turn.game.players[1].tokens[:timber].should be == 1
+				@turn.game.players[2].tokens[:boats].should be == 0
+				@turn.game.players[2].tokens[:timber].should be == 1
+				@turn.game.tree_track.should be == 96
+			end
+		end
+	end
 
+	describe "Early Winter" do
+
+		before(:each) do
+			@turn.game.players[0].barns = 5
+			@turn.game.players[1].barns = 5
+			@turn.game.players[2].barns = 5
+			@turn.game.players.each do |player|
+				player.tokens[:hay] = 80
+				player.tokens[:food] = 80
+			end
+		end
+
+		it "should have all baby livestock grow up" do
+			InputFaker.with_fake_input(["n","5","1","4","2","4","1","y","y","y"]) do
+				@turn.game.players[0].nursery[:sheep] = 1
+				@turn.game.players[2].nursery[:cows] = 1
+				@turn.early_winter
+				@turn.game.players[0].tokens[:sheep].should be == 5
+				@turn.game.players[0].tokens[:cows].should be == 1
+				@turn.game.players[1].tokens[:sheep].should be == 4
+				@turn.game.players[1].tokens[:cows].should be == 2
+				# Player 3 had no babies and is unaffected here
+				@turn.game.players[2].tokens[:sheep].should be == 4
+				@turn.game.players[2].tokens[:cows].should be == 1
+				# No more baby livestock for anyone
+				@turn.game.players[0].nursery[:sheep].should be == 0
+				@turn.game.players[0].nursery[:cows].should be == 0
+				@turn.game.players[1].nursery[:sheep].should be == 0
+				@turn.game.players[1].nursery[:cows].should be == 0
+			end
+		end
+
+		it "should save the right number of livestock indoors" do
+			InputFaker.with_fake_input(["n","2","0","0","1","0","1","y","y","n"]) do
+				# sheep/cows into barns
+				# 0: "2","0"
+				# 1: "0","1"
+				# 2: "0","1"
+				@turn.game.players[2].barns = 0 # What if they have no barn? Woe.
+				@turn.early_winter
+				@turn.game.players[0].tokens[:sheep].should be == 2
+				@turn.game.players[0].tokens[:cows].should be == 0
+				@turn.game.players[1].tokens[:sheep].should be == 0
+				@turn.game.players[1].tokens[:cows].should be == 1
+				@turn.game.players[2].tokens[:sheep].should be == 0
+				@turn.game.players[2].tokens[:cows].should be == 0
+			end
+		end
+
+		it "should have sheep decisions affect hay and soil" do
+			InputFaker.with_fake_input(["n","0","1","0","1","2","0","n","y","n"]) do
+				# spend hay on sheep? "n","y","n"
+				@turn.game.players[1].tokens[:hay] = 0 
+				@turn.game.players[2].tokens[:hay] = 0
+				@turn.early_winter
+				@turn.game.players[0].tokens[:hay].should be == 74
+				@turn.game.players[0].tokens[:sheep].should be == 0
+				@turn.game.players[0].tokens[:cows].should be == 1
+				@turn.game.players[1].tokens[:sheep].should be == 0
+				@turn.game.players[1].tokens[:cows].should be == 0
+				@turn.game.players[1].soil_track.should be == 103
+				@turn.game.players[2].tokens[:sheep].should be == 2
+				@turn.game.players[2].tokens[:cows].should be == 0
+				@turn.game.players[2].soil_track.should be == 99
+			end
+		end
+
+		it "should require the right amount of food to be spent per person" do
+			InputFaker.with_fake_input(["n","2","0","0","1","0","1","y","y","n"]) do
+				@turn.game.players[2].tokens[:food] = 0
+				@turn.early_winter
+				@turn.game.players[2].should be == nil
+				@turn.game.players[1].tokens[:local_people].should be == 4
+				@turn.game.players[0].tokens[:local_people].should be == 4
+			end
+		end
 	end
 end
+
+
+
+
+
+
 
 
 
