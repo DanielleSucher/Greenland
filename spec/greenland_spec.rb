@@ -53,10 +53,41 @@ describe Game do
 	end
 
 	describe "Play Game" do
-		# Game methods to test: 
-		# play
-		# update_game_variables
-		# name_players
+
+		before(:each) do
+			@game = Game.new
+		end
+
+		it "should create players properly" do
+			InputFaker.with_fake_input(["1","3"]) do
+				@game.create_players
+				@game.number_players.should be == 3
+				@game.players.length.should be == 3
+			end
+		end
+
+		it "should name players properly" do
+			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
+				@game.create_players
+				@game.name_players
+				@game.players.length.should be == 3
+				@game.players[0].name.should be == "Ann"
+				@game.players[1].name.should be == "Ben"
+				@game.players[2].name.should be == "Cat"
+			end
+		end
+
+		it "should end the game when the succession card comes up" do
+			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
+				@game.game_over = true
+				@game.play
+				@game.players.length.should be == 3
+				@game.winners.length.should be == 3
+				@game.winners.should include(@game.players[0])
+				@game.winners.should include(@game.players[1])
+				@game.winners.should include(@game.players[2])
+			end
+		end
 	end
 end
 
@@ -516,12 +547,10 @@ describe Turn do
 	describe "Early Winter" do
 
 		before(:each) do
-			@turn.game.players[0].barns = 5
-			@turn.game.players[1].barns = 5
-			@turn.game.players[2].barns = 5
 			@turn.game.players.each do |player|
 				player.tokens[:hay] = 80
 				player.tokens[:food] = 80
+				player.barns = 5
 			end
 		end
 
@@ -587,6 +616,50 @@ describe Turn do
 				@turn.game.players[2].should be == nil
 				@turn.game.players[1].tokens[:local_people].should be == 4
 				@turn.game.players[0].tokens[:local_people].should be == 4
+			end
+		end
+	end
+
+	describe "Mid Winter" do
+
+		before(:each) do
+			@turn.game.players.each do |player|
+				player.tokens[:hay] = 80
+				player.tokens[:food] = 80
+			end
+		end
+
+		it "should build/repair the right number of boats/barns" do
+			InputFaker.with_fake_input(["1","0","2","0","2","0","0","0","1","n","Ann"]) do
+				# repair_barn/build_barn/build_boat
+				# 0: "1","0","2" (shouldn't have enough timber for the boats)
+				# 1: "0","2","0"
+				# 2: "0","0","1"
+				@turn.game.players[0].name = "Ann"
+				@turn.game.players[0].tokens[:timber] = 2
+				@turn.game.players[1].tokens[:timber] = 12
+				@turn.game.players[1].tokens[:local_people] = 12
+				@turn.game.players[2].tokens[:timber] = 3
+				@turn.game.players[2].tokens[:local_people] = 3
+				@turn.mid_winter
+				@turn.game.players[0].barns.should be == 1
+				@turn.game.players[0].tokens[:boats].should be == 1
+				@turn.game.players[1].barns.should be == 2
+				@turn.game.players[1].tokens[:boats].should be == 1
+				@turn.game.players[2].barns.should be == 0
+				@turn.game.players[2].tokens[:boats].should be == 2
+			end
+		end
+
+		it "should choose the right dealer" do
+			InputFaker.with_fake_input(["1","0","2","0","2","0","0","0","1","n","Ben"]) do
+				# repair_barn/build_barn/build_boat
+				# 0: "1","0","2" (shouldn't have enough timber for the boats)
+				# 1: "0","2","0"
+				# 2: "0","0","1"
+				@turn.game.players[0].tokens[:local_people] = 12
+				@turn.mid_winter
+				@turn.game.players[0].name.should be == "Ben"
 			end
 		end
 	end

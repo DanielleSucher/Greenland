@@ -121,21 +121,6 @@ class Player
 		@total_points = 0
 	end
 
-	def build_building(type,people,timber)
-		# Build a barn: this requires six people and six units of timber. 
-		# Build a boat: this requires three people and three units of timber.
-		available_people = self.tokens[:local_people] - self.tokens[:busy_people]
-		if available_people >= people && self.tokens[:timber] >= timber
-			types = type+"s"
-			self[types] += 1
-			self.tokens[:timber] -= timber
-			self.tokens[:busy_people] += people
-			puts "You've built a #{type}!"
-		else
-			puts "Sorry, you don't have the necessary resources to build any more #{type}s."
-		end
-	end
-
 	def repair_barn
 		# Repair a barn: repairs require one person and one unit of timber.  Any
 		# barns not repaired at the end of this phase (midwinter) are destroyed.  
@@ -146,6 +131,24 @@ class Player
 			puts "You've repaired a barn!"
 		else
 			puts "Sorry, you don't have the necessary resources to repair any more barns."
+		end
+	end
+
+	def build_building(type,people,timber)
+		# Build a barn: this requires six people and six units of timber. 
+		# Build a boat: this requires three people and three units of timber.
+		available_people = self.tokens[:local_people] - self.tokens[:busy_people]
+		if available_people >= people && self.tokens[:timber] >= timber
+			if type == "barn"
+				self.barns += 1
+			elsif type == "boat"
+				self.tokens[:boats] += 1
+			end
+			self.tokens[:timber] -= timber
+			self.tokens[:busy_people] += people
+			puts "You've built a #{type}!"
+		else
+			puts "Sorry, you don't have the necessary resources to build any more #{type}s."
 		end
 	end
 end
@@ -684,8 +687,9 @@ class Turn
 		puts "Hey #{chooser.name}, you get to choose - who should be the next dealer?"
 		print ">> "
 		dealer = $stdin.gets.chomp
-		index = @game.players.index { |player| player.name = dealer}
-		@game.players.rotate!(index)
+		i = @game.players.index { |player| player.name == dealer }
+		puts "dealer: #{dealer}; i: #{i}"
+		@game.players.rotate!(i)
 	end
 
 	def mid_winter
@@ -772,7 +776,7 @@ class Turn
 		# Turn up the top winter card. 
 		still_winter = @game.winter_deck.cards.first[:spring]
 
-		self.sequence_point # players can trade tokens)
+		self.sequence_point # players can trade tokens
 
 		until still_winter == false
 			puts "It's STILL winter."
@@ -819,7 +823,8 @@ end
 
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, :seal_deck, :game_over, :ship_worth_it
+	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, 
+				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -839,12 +844,15 @@ class Game
 	end
 
 	def create_players
-		puts "How many people are playing?"
-		print ">> "
-		@number_players = $stdin.gets.chomp.to_i
-		@players = []
-		for i in 1..@number_players
-			@players << Player.new
+		@number_players = 0
+		until @number_players >= 2 && @number_players < 7
+			puts "How many people are playing? (2-6)"
+			print ">> "
+			@number_players = $stdin.gets.chomp.to_i
+			@players = []
+			for i in 1..@number_players
+				@players << Player.new
+			end
 		end
 	end
 
@@ -886,6 +894,9 @@ class Game
 		end
 		# The player with any surviving people and the most silver wins.
 		@winner = @players.max_by { |player| player.total_points }
-		puts "#{@winner.name} wins!"
+		@winners = @players.select { |player| player.total_points == @winner.total_points }
+		@winner_names = []
+		@winners.each { |player| @winner_names << player.name }
+		puts "#{@winner_names.join(" and ")} survived Greenland! Congratulations!"
 	end
 end
