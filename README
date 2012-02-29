@@ -1,9 +1,18 @@
-A card game invented by Dave Turner, inspired by the chapter 
-in Jared Diamond's _Collapse_ where the Vikings go to Greenland and
-then they all die. 
+A card game invented by Dave Turner, inspired by the chapter in Jared 
+Diamond's _Collapse_ where the Vikings go to Greenland and then they all die. 
 
-I'm currently working on modeling the game, and then I'll get to 
-defining some player strategies and running them through to see if 
-any of them actually work, or if the game rules need to be modified. 
+Greenland is currently playable in the terminal - just navigate to the directory 
+where you saved it and type in "ruby greenland-play.rb" and have fun!
 
-VERY in-progress.
+My next steps:
+
+1. Define a Strategy class and set the inputs to come from Strategy 
+instead of from @stdin.gets.
+
+2. Define a strategy that takes input from @stdin.gets, and set greenland-play 
+to that one, so it works basically the same way it does now.
+
+3. Define a few other basic strategies.
+
+4. Run simulations with those strategies to test gameplay and see if any of them 
+actually work, or if the game rules need to be modified. 
