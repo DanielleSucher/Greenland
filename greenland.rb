@@ -688,7 +688,6 @@ class Turn
 		print ">> "
 		dealer = $stdin.gets.chomp
 		i = @game.players.index { |player| player.name == dealer }
-		puts "dealer: #{dealer}; i: #{i}"
 		@game.players.rotate!(i)
 	end
 
