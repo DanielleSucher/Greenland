@@ -4,10 +4,10 @@ Diamond's _Collapse_ where the Vikings go to Greenland and then they all die.
 Greenland is currently playable in the terminal - just navigate to the directory 
 where you saved it and type in "ruby greenland-play.rb" and have fun!
 
-To run simulations with pre-set strategies, edit greenland-sim.rb to reflect the specs 
-of the test you need to run (details needed indicated in the comments) and have it.
-(Though at the moment, the only strategy defined so far is the human-playable 
-default strategy, StdInput.)
+To run simulations with pre-set strategies, edit greenland-sim.rb to reflect the 
+specs of the test you need to run (details needed indicated in the comments) and 
+have at. (Though at the moment, the only strategy defined so far is the 
+human-playable default strategy, StdInput.)
 
 Next steps:
 
