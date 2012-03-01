@@ -4,7 +4,7 @@ class Strategy
 	end
 
 	def sequence_point
-		"n"
+		false
 		# You can't safely override this other than with $stdin.gets.chomp, so please don't!
 	end
 
@@ -19,7 +19,7 @@ class Strategy
 	end
 
 	def hunt_seals
-		# y/n
+		# boolean
 	end
 
 	def ivory_to_trade
@@ -31,7 +31,7 @@ class Strategy
 	end
 
 	def butcher_sheep 
-		# y/n
+		# boolean
 	end
 
 	def butchering_sheep_count
@@ -39,7 +39,7 @@ class Strategy
 	end
 
 	def butcher_cows
-		# y/n
+		# boolean
 	end
 
 	def butchering_cows_count
@@ -63,7 +63,7 @@ class Strategy
 	end
 
 	def feed_sheep_hay
-		# y/n
+		# boolean
 	end
 
 	def choose_dealer
@@ -89,7 +89,7 @@ class StdInput < Strategy
 	end
 
 	def sequence_point 
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def send_boats_count(boats)
@@ -103,7 +103,7 @@ class StdInput < Strategy
 	end
 
 	def hunt_seals
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def ivory_to_trade
@@ -115,7 +115,7 @@ class StdInput < Strategy
 	end
 
 	def butcher_sheep 
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def butchering_sheep_count
@@ -123,7 +123,7 @@ class StdInput < Strategy
 	end
 
 	def butcher_cows
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def butchering_cows_count
@@ -147,7 +147,7 @@ class StdInput < Strategy
 	end
 
 	def feed_sheep_hay
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def choose_dealer
@@ -183,7 +183,7 @@ class DoNothing < Strategy
 	end
 
 	def hunt_seals
-		"n"
+		false
 	end
 
 	def ivory_to_trade
@@ -195,7 +195,7 @@ class DoNothing < Strategy
 	end
 
 	def butcher_sheep 
-		"n"
+		false
 	end
 
 	def butchering_sheep_count
@@ -203,7 +203,7 @@ class DoNothing < Strategy
 	end
 
 	def butcher_cows
-		"n"
+		false
 	end
 
 	def butchering_cows_count
@@ -227,7 +227,7 @@ class DoNothing < Strategy
 	end
 
 	def feed_sheep_hay
-		"n"
+		false
 	end
 
 	def choose_dealer

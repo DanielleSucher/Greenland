@@ -169,8 +169,8 @@ class Turn
 	end
 
 	def trade(give_or_receive)
-		more_stuff = "y"
-		while more_stuff == "y"
+		more_stuff = true
+		while more_stuff
 			puts "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
 			print ">> "
 			kind = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
@@ -192,7 +192,7 @@ class Turn
 		puts "Does anyone want to make a trade? (y/n)"
 		print ">> "
 		another_trade = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
-		while another_trade == "y"
+		while another_trade
 			@give = {}
 			@receive = {}
 			# figure out what the first player in this trade is trading
@@ -268,7 +268,7 @@ class Turn
 			puts "Hey #{player.name}, do you want to hunt seals this turn? (y/n)"
 			print ">> "
 			seals = player.strategy.hunt_seals # $stdin.gets.chomp
-			if seals == "y"
+			if seals
 				# Each player who hunts seals puts aside one person token.
 				player.tokens[:local_people] -= 1
 				player.tokens[:hunting_people] += 1
@@ -352,7 +352,7 @@ class Turn
 
 		self.sequence_point # players can trade tokens
 
-		if @game.ship_worth_it == true
+		if @game.ship_worth_it
 			# Except on turn 1, or if the trade ship is on the "not worth it" space:
 
 			# A ship arrives from Norway: players may trade processed ivory tokens
@@ -514,7 +514,7 @@ class Turn
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:sheep]} sheep for 12 food tokens each? (y/n)"
 			print ">> "
 			answer = player.strategy.butcher_sheep # $stdin.gets.chomp
-			if answer == "y"
+			if answer
 				puts "How many sheep do you want to butcher now?"
 				print ">> "
 				count = player.strategy.butchering_sheep_count # $stdin.gets.chomp.to_i
@@ -524,7 +524,7 @@ class Turn
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:cows]} cows for 18 food tokens each? (y/n)"
 			print ">> "
 			answer = player.strategy.butcher_cows # $stdin.gets.chompp
-			if answer == "y"
+			if answer
 				puts "How many cows do you want to butcher now?"
 				print ">> "
 				count = player.strategy.butchering_cows_count # $stdin.gets.chomp.to_i
@@ -676,7 +676,7 @@ class Turn
 			puts "#{player.name}, do you want to spend hay tokens to feed your sheep and let your soil recover? (y/n)"
 			print ">> "
 			answer = player.strategy.feed_sheep_hay # $stdin.gets.chomp
-			if answer == "y"
+			if answer
 				sheep_multiplier = 3
 				# If a player does not graze their sheep outside, the soil can recover;
 				# their soil fertility counter moves up (more fertile) by 4.
