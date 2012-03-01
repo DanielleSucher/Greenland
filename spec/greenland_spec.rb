@@ -21,6 +21,10 @@ describe Game do
 			@game.current_turn.should be == 1
 		end
 
+		it "should default to human users" do
+			@game.sim.should be == false
+		end
+
 		describe "Decks" do
 			it "should have a Year Deck" do
 				@game.should respond_to(:year_deck)
@@ -92,6 +96,19 @@ describe Game do
 				@game.winners.should include(@game.players[2])
 			end
 		end
+	end
+
+	describe "Simulation Game" do
+
+		before(:each) do
+			@game = Game.new
+		end
+
+		it "should set the game to use simulation strategies" do
+			@game.simulation
+			@game.sim.should be == true
+		end
+
 	end
 end
 

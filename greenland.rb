@@ -1,4 +1,6 @@
 # Greenland: a game for 2-6 players
+$:.unshift File.expand_path('.')
+require 'strategies'
 
 class Deck
 	attr_accessor :cards
@@ -103,7 +105,7 @@ end
 
 
 class Player
-	attr_accessor :name, :soil_track , :barns, :nursery, :tokens, :barn_animals, :total_points
+	attr_accessor :name, :soil_track , :barns, :nursery, :tokens, :barn_animals, :total_points, :strategy
 
 	# Each player starts with the following tokens: 4 persons, 4 sheep, 1 barn, 1 cow, 1 boat
 	# Each player has a SoilTrack, which starts at its most fertile end (99)
@@ -119,6 +121,10 @@ class Player
 					:boats_in_vinland => 0, :boats_hunting => 0, :hay => 0, :ivory => 0, :silver => 0 }
 		@name = ""
 		@total_points = 0
+	end
+
+	def set_strategy(strategy)
+		@strategy = Strategy.new(strategy,@game)
 	end
 
 	def repair_barn
@@ -830,7 +836,7 @@ end
 # Greenland: a game for 2-6 players
 class Game
 	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, 
-				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn
+				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn, :sim
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -841,6 +847,7 @@ class Game
 
 	def initialize
 		@game_over = false
+		@sim = false
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
@@ -848,6 +855,10 @@ class Game
 			# Ship from Norway to trade from ivory. Doesn't show up the first turn, or on later turns where it's not worth it.
 		@current_turn = 1 # The game starts on turn 1, of course!
 		self.create_decks
+	end
+
+	def simulation
+		@sim = true
 	end
 
 	def create_players
@@ -872,6 +883,14 @@ class Game
 		end
 	end
 
+	def set_player_strategies
+		if @sim == false
+			@players.each { |player| player.set_strategy("stdinput") }
+		else
+			# set strategies for simulation
+		end
+	end
+
 	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player? 
 	# create methods for checking the game state (and a game state that sums stuff up), maybe?)
 
@@ -880,6 +899,7 @@ class Game
 		puts "The player with the most surviving people and the most silver at the end of the game wins. Good luck!"
 		self.create_players
 		self.name_players # Have players input their names
+		self.set_player_strategies
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
 		puts "#{@players.first.name} is the dealer, for now."
