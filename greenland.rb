@@ -173,16 +173,16 @@ class Turn
 		while more_stuff == "y"
 			puts "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
 			print ">> "
-			kind = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			kind = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 			puts "How many #{kind} tokens are you giving?"
 			print ">> "
-			count = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			count = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 			count = count.to_i
 			give_or_receive[@possible_trades[kind]] = count
 			#loop through what kind / what amount until they're done to determine the give_or_receive array
 			puts "Do you want to give any other kind of tokens in this trade? (y/n)"
 			print ">> "
-			more_stuff = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			more_stuff = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 		end
 	end
 
@@ -191,20 +191,20 @@ class Turn
 		puts "Players may trade tokens at this point. Please discuss amongst yourselves."
 		puts "Does anyone want to make a trade? (y/n)"
 		print ">> "
-		another_trade = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+		another_trade = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 		while another_trade == "y"
 			@give = {}
 			@receive = {}
 			# figure out what the first player in this trade is trading
 			puts "Who is the first player involved in this trade?" 
 			print ">> "
-			trader_name = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			trader_name = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 			@trader = @game.players.detect { |player| player.name == trader_name }
 			self.trade(@give)
 			# figure out what the other player in this trade is trading
 			puts "Who is the other player involved in this trade?"
 			print ">> "
-			tradee_name = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			tradee_name = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 			@tradee = @game.players.detect { |player| player.name == tradee_name }
 			self.trade(@receive)
 			# actually make the trade happen, don't just save the data!
@@ -219,7 +219,7 @@ class Turn
 			end
 			puts "Does anyone want to make any more trades at this time? (y/n)"
 			print ">> "
-			another_trade = @game.players[0].strategy.sequence_point # $stdin.gets.chomp
+			another_trade = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
 		end 
 		puts "Trading is now over until you hit the next sequence point."
 	end
@@ -513,7 +513,7 @@ class Turn
 		@game.players.each do |player| 
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:sheep]} sheep for 12 food tokens each? (y/n)"
 			print ">> "
-			answer = $stdin.gets.chomp
+			answer = player.strategy.butcher_sheep # $stdin.gets.chomp
 			if answer == "y"
 				puts "How many sheep do you want to butcher now?"
 				print ">> "
@@ -523,7 +523,7 @@ class Turn
 			end
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:cows]} cows for 18 food tokens each? (y/n)"
 			print ">> "
-			answer = $stdin.gets.chomp
+			answer = player.strategy.butcher_cows # $stdin.gets.chompp
 			if answer == "y"
 				puts "How many cows do you want to butcher now?"
 				print ">> "
@@ -691,6 +691,7 @@ class Turn
 			# Each player returns three food tokens per person.
 			self.return_food(3,player)
 		end
+		@game.game_over = true if @game.players == []
 	end
 
 	def choose_dealer(chooser)
@@ -789,7 +790,7 @@ class Turn
 
 		self.sequence_point # players can trade tokens
 
-		until still_winter == false
+		until still_winter == false || @game.game_over = true
 			puts "It's STILL winter."
 
 			@game.players.each do |player|
@@ -806,6 +807,9 @@ class Turn
 			# Repeat turning up winter cards until the spring card comes up.
 			still_winter = @game.winter_deck.cards.first[:spring]
 			# Each time a winter card is turned up, each player returns tokens as above.
+
+			# End the game when all the players die
+			@game.game_over = true if @game.players == []
 		end 
 	end
 
@@ -824,8 +828,10 @@ class Turn
 			self.summer
 			self.autumn
 			self.early_winter
-			self.mid_winter
-			self.end_winter
+			if @game.game_over == false
+				self.mid_winter
+				self.end_winter
+			end
 		end
 	end
 end
@@ -834,8 +840,8 @@ end
 
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, 
-				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn
+	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, 
+				  :seal_deck, :game_over, :ship_worth_it, :winners, :winner_names, :current_turn
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -909,10 +915,13 @@ class Game
 			player.total_points = player.tokens[:silver] + player.tokens[:local_people]
 		end
 		# The player with any surviving people and the most silver wins.
-		@winner = @players.max_by { |player| player.total_points }
-		@winners = @players.select { |player| player.total_points == @winner.total_points }
+		@winners = []
+		if @players.size > 0
+			@winner = @players.max_by { |player| player.total_points }
+			@winners = @players.select { |player| player.total_points == @winner.total_points }
+		end
 		@winner_names = []
-		@winners.each { |player| @winner_names << player.name }
+		@winners.each { |player| @winner_names << player.name } if @winners != []
 		if @winners != []
 			puts "#{@winner_names.join(" and ")} survived Greenland! Congratulations!"
 		else
