@@ -5,16 +5,12 @@ Greenland is currently playable in the terminal - just navigate to the directory
 where you saved it and type in "ruby greenland-play.rb" and have fun!
 
 To run simulations with pre-set strategies, run "ruby greenland-sim.rb" instead.
+(Though at the moment, the only strategy defined so far is the human-playable 
+default strategy, Stdinput.)
 
-My next steps:
+Next steps:
 
-1. Define a Strategy class and set the inputs to come from Strategy 
-instead of from @stdin.gets.
+1. Define a few other strategy subclasses.
 
-2. Define a strategy that takes input from @stdin.gets, and set greenland-play 
-to that one, so it works basically the same way it does now.
-
-3. Define a few other basic strategies.
-
-4. Run simulations with those strategies to test gameplay and see if any of them 
+2. Run simulations with those strategies to test gameplay and see if any of them 
 actually work, or if the game rules need to be modified. 
