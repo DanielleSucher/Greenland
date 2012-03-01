@@ -274,6 +274,8 @@ class Turn
 				player.tokens[:hunting_people] += 1
 				@hunters << player.name #test this!
 				puts "Okay #{player.name}, you've sent off one of your people to hunt seals!"
+			else
+				puts "Okay, no seal-hunting for you this turn!"
 			end
 		end
 
@@ -876,7 +878,7 @@ class Game
 		@players.each_with_index do |player,i|
 			puts "Hey Player #{i+1}, what is your name?"
 			print ">> "
-			player.name = player.strategy.choose_name # $stdin.gets.chomp
+			player.name = $stdin.gets.chomp
 		end
 	end
 
@@ -886,7 +888,6 @@ class Game
 	def play
 		puts "Welcome to Greenland!"
 		puts "The player with the most surviving people and the most silver at the end of the game wins. Good luck!"
-		self.name_players # Have players input their names
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
 		puts "#{@players.first.name} is the dealer, for now."
@@ -912,6 +913,10 @@ class Game
 		@winners = @players.select { |player| player.total_points == @winner.total_points }
 		@winner_names = []
 		@winners.each { |player| @winner_names << player.name }
-		puts "#{@winner_names.join(" and ")} survived Greenland! Congratulations!"
+		if @winners != []
+			puts "#{@winner_names.join(" and ")} survived Greenland! Congratulations!"
+		else
+			puts "You all died. Greenland wins!"
+		end
 	end
 end

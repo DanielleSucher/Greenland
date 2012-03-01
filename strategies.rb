@@ -56,9 +56,6 @@ class Strategy
 
 	def build_boats_count
 	end
-
-	def choose_name
-	end
 end
 
 class StdInput < Strategy
@@ -135,10 +132,6 @@ class StdInput < Strategy
 	def build_boats_count
 		$stdin.gets.chomp.to_i
 	end
-
-	def choose_name
-		$stdin.gets.chomp
-	end
 end
 
 class DoNothing < Strategy
@@ -146,77 +139,69 @@ class DoNothing < Strategy
 		super(game)
 	end
 
-	def sequence_point 
-		$stdin.gets.chomp
-	end
-
 	def send_boats_count(boats)
 		# boats will be either :boats_hunting (for walrus-hunting) or :boats_in_vinland (for sending boats to vinland)
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def send_boats_people_count(boats)
 		# boats will be either :boats_hunting (for walrus-hunting) or :boats_in_vinland (for sending boats to vinland)
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def hunt_seals
-		$stdin.gets.chomp
+		n
 	end
 
 	def ivory_to_trade
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def how_much_hay
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def butchering_sheep_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def butchering_cows_count
-		$stdin.gets.chomp.to_i
+		0
 	end	
 
 	def cut_down_trees_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def deconstruct_boats_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def sheep_move_into_barns_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def cows_move_into_barns_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def feed_sheep_hay
-		$stdin.gets.chomp
+		n
 	end
 
 	def choose_dealer
-		$stdin.gets.chomp
+		@game.players.shuffle.first.name
 	end
 
 	def repair_barns_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def build_barns_count
-		$stdin.gets.chomp.to_i
+		0
 	end
 
 	def build_boats_count
-		$stdin.gets.chomp.to_i
-	end
-
-	def choose_name
-		$stdin.gets.chomp
+		0
 	end
 end

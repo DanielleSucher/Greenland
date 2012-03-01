@@ -4,6 +4,7 @@ require 'strategies'
 
 game = Game.new
 game.create_players
+game.name_players
 
 # set player strategies
 game.players.each do |player|

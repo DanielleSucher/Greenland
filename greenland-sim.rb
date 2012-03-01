@@ -8,7 +8,8 @@ n1.times do # Edit n1 depending on how many iterations of the game you need for 
 	n2.times { sim_game.players << Player.new } # Edit n2 depending on how many players you need for this test!
 
 	# set player strategies
-	sim_game.players.each do |player|
+	sim_game.players.each_with_index do |player,i|
+		player.name = "Player-#{i}"
 		player.strategy = DoNothing.new(sim_game)
 	end
 
