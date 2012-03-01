@@ -21,16 +21,12 @@ describe Game do
 			@game.current_turn.should be == 1
 		end
 
-		it "should default to human users" do
-			@game.sim.should be == false
-		end
-
-		it "should default to human users with using the Stdinput strategy" do
+		it "should successfully set the Stdinput strategy for human users" do
 			InputFaker.with_fake_input(["2"]) do
 				@game.create_players
-				@game.set_player_strategies
-				@game.players[0].strategy.class.should be == Stdinput
-				@game.players[1].strategy.class.should be == Stdinput
+				@game.players.each { |player| player.strategy = StdInput.new(@game) }
+				@game.players[0].strategy.class.should be == StdInput
+				@game.players[1].strategy.class.should be == StdInput
 			end
 		end
 
@@ -86,7 +82,7 @@ describe Game do
 		it "should name players properly" do
 			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
 				@game.create_players
-				@game.set_player_strategies
+				@game.players.each { |player| player.strategy = StdInput.new(@game) }
 				@game.name_players
 				@game.players.length.should be == 3
 				@game.players[0].name.should be == "Ann"
@@ -98,6 +94,8 @@ describe Game do
 		it "should end the game when the succession card comes up" do
 			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
 				@game.game_over = true
+				@game.create_players
+				@game.players.each { |player| player.strategy = StdInput.new(@game) }
 				@game.play
 				@game.players.length.should be == 3
 				@game.winners.length.should be == 3
@@ -106,19 +104,6 @@ describe Game do
 				@game.winners.should include(@game.players[2])
 			end
 		end
-	end
-
-	describe "Simulation Game" do
-
-		before(:each) do
-			@game = Game.new
-		end
-
-		it "should set the game to use simulation strategies" do
-			@game.simulation
-			@game.sim.should be == true
-		end
-
 	end
 end
 
@@ -355,7 +340,7 @@ describe Turn do
 			@game = Game.new
 			@game.players = []
 			3.times { @game.players << Player.new }
-			@game.set_player_strategies
+			@game.players.each { |player| player.strategy = StdInput.new(@game) }
 			@game.players[0].name = "Ann"
 			@game.players[1].name = "Ben"
 			@game.players[2].name = "Cat"
@@ -753,8 +738,20 @@ end
 
 
 
+describe "Strategy" do
+	before(:each) do
+		@game = Game.new
+	end
 
-
+	it "should successfully set the Stdinput strategy for human users" do
+		InputFaker.with_fake_input(["2"]) do
+			@game.create_players
+			@game.players.each { |player| player.strategy = StdInput.new(@game) }
+			@game.players[0].strategy.class.should be == StdInput
+			@game.players[1].strategy.class.should be == StdInput
+		end
+	end
+end
 
 
 

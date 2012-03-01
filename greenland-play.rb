@@ -1,4 +1,13 @@
 $:.unshift File.expand_path('.')
 require 'greenland'
+require 'strategies'
 
-Game.new.play
+game = Game.new
+game.create_players
+
+# set player strategies
+game.players.each do |player|
+	player.strategy = StdInput.new(game)
+end
+
+game.play

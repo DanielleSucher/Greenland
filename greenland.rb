@@ -123,12 +123,6 @@ class Player
 		@total_points = 0
 	end
 
-	def set_strategy(strategy)
-		strategy = strategy.capitalize
-		strategy = Object.const_get(strategy)
-		@strategy = strategy.new(@game)
-	end
-
 	def repair_barn
 		# Repair a barn: repairs require one person and one unit of timber.  Any
 		# barns not repaired at the end of this phase (midwinter) are destroyed.  
@@ -839,7 +833,7 @@ end
 # Greenland: a game for 2-6 players
 class Game
 	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, 
-				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn, :sim
+				  :winter_deck, :seal_deck, :game_over, :ship_worth_it, :winners, :current_turn
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -850,7 +844,7 @@ class Game
 
 	def initialize
 		@game_over = false
-		@sim = false
+		@players = []
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
@@ -867,25 +861,12 @@ class Game
 	def create_players
 		@number_players = 0
 		until @number_players >= 2 && @number_players < 7
+			@players = []
 			puts "How many people are playing? (2-6)"
 			print ">> "
 			@number_players = $stdin.gets.chomp.to_i
-			@players = []
 			for i in 1..@number_players
 				@players << Player.new
-			end
-		end
-	end
-
-	def set_player_strategies
-		if @sim == false
-			@players.each { |player| player.set_strategy("stdinput") }
-		else
-			@players.each_with_index do |player,i|
-				puts "What strategy would you like Player #{i} to use?"
-				print ">> "
-				strategy = $stdinput.gets.chomp
-				player.set_strategy(strategy)
 			end
 		end
 	end
@@ -905,8 +886,6 @@ class Game
 	def play
 		puts "Welcome to Greenland!"
 		puts "The player with the most surviving people and the most silver at the end of the game wins. Good luck!"
-		self.create_players
-		self.set_player_strategies
 		self.name_players # Have players input their names
 		# Choose one player to be the dealer by rolling dice for highest.
 		@players.shuffle!
