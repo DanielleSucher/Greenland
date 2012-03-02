@@ -12,6 +12,11 @@ class Strategy
 		# You can't safely override this other than with $stdin.gets.chomp, so please don't!
 	end
 
+	def sequence_point_details
+		$stdin.gets.chomp
+		# You can't safely override this (and sims will never reach it so long as sequence_point is false), so please don't!
+	end
+
 	def send_boats_count(boats)
 		# boats will be either :boats_hunting (for walrus-hunting) or :boats_in_vinland (for sending boats to vinland)
 		# int

@@ -173,10 +173,10 @@ class Turn
 		while more_stuff
 			puts "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
 			print ">> "
-			kind = @game.players.first.strategy.sequence_point
+			kind = @game.players.first.strategy.sequence_point_details
 			puts "How many #{kind} tokens are you giving?"
 			print ">> "
-			count = @game.players.first.strategy.sequence_point.to_i
+			count = @game.players.first.strategy.sequence_point_details.to_i
 			count = count
 			give_or_receive[@possible_trades[kind]] = count
 			#loop through what kind / what amount until they're done to determine the give_or_receive array
@@ -198,13 +198,13 @@ class Turn
 			# figure out what the first player in this trade is trading
 			puts "Who is the first player involved in this trade?" 
 			print ">> "
-			trader_name = @game.players.first.strategy.sequence_point
+			trader_name = @game.players.first.strategy.sequence_point_details
 			@trader = @game.players.detect { |player| player.name == trader_name }
 			self.trade(@give)
 			# figure out what the other player in this trade is trading
 			puts "Who is the other player involved in this trade?"
 			print ">> "
-			tradee_name = @game.players.first.strategy.sequence_point
+			tradee_name = @game.players.first.strategy.sequence_point_details
 			@tradee = @game.players.detect { |player| player.name == tradee_name }
 			self.trade(@receive)
 			# actually make the trade happen, don't just save the data!
