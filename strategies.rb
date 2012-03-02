@@ -1,6 +1,10 @@
 class Strategy
-	def initialize(game)
+	def initialize
+	end
+
+	def setup(game, player)
 		@game = game
+		@player = player
 	end
 
 	def sequence_point
@@ -84,10 +88,6 @@ class Strategy
 end
 
 class StdInput < Strategy
-	def initialize(game)
-		super(game)
-	end
-
 	def sequence_point 
 		$stdin.gets.chomp.downcase == 'y'
 	end
@@ -168,8 +168,8 @@ class StdInput < Strategy
 end
 
 class DoNothing < Strategy
-	def initialize(game)
-		super(game)
+	def initialize
+		super
 	end
 
 	def send_boats_count(boats)

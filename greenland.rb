@@ -119,7 +119,7 @@ class Player
 		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0,
 					:food => 0, :vinland_people => 0, :hunting_people => 0, :busy_people => 0, 
 					:boats_in_vinland => 0, :boats_hunting => 0, :hay => 0, :ivory => 0, :silver => 0 }
-		@name = ""
+		@name = "" + rand.to_s #default name is random
 		@total_points = 0
 	end
 
@@ -840,8 +840,12 @@ end
 
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, 
+	attr_accessor :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, 
 				  :seal_deck, :game_over, :ship_worth_it, :winners, :winner_names, :current_turn
+
+	def number_players
+		@players.size
+	end
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -850,9 +854,12 @@ class Game
 		@seal_deck = SealDeck.new
 	end
 
-	def initialize
+	def initialize(players)
 		@game_over = false
-		@players = []
+		@players = players
+		for player in @players
+			      player.strategy.setup(self, player)
+		end
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
@@ -864,28 +871,6 @@ class Game
 
 	def simulation
 		@sim = true
-	end
-
-	def create_players
-		@number_players = 0
-		until @number_players >= 2 && @number_players < 7
-			@players = []
-			puts "How many people are playing? (2-6)"
-			print ">> "
-			@number_players = $stdin.gets.chomp.to_i
-			for i in 1..@number_players
-				@players << Player.new
-			end
-		end
-	end
-
-	def name_players
-		puts "Please decide on unique names for yourselves!"
-		@players.each_with_index do |player,i|
-			puts "Hey Player #{i+1}, what is your name?"
-			print ">> "
-			player.name = $stdin.gets.chomp
-		end
 	end
 
 	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player? 
@@ -928,4 +913,43 @@ class Game
 			puts "You all died. Greenland wins!"
 		end
 	end
+end
+
+class GameFactory
+
+	def self.game_from_strategies(strategies)
+		players = strategies.map { |strategy|
+			      player = Player.new
+			      player.strategy = strategy
+			      player
+		}
+		Game.new(players)
+	end
+
+	def self.game_from_console
+		number_players = 0
+		until number_players >= 2 && number_players < 7
+			players = []
+			puts "How many people are playing? (2-6)"
+			print ">> "
+			number_players = $stdin.gets.chomp.to_i
+			for i in 1..number_players
+				player = Player.new
+				player.strategy = StdInput.new
+				players << player
+			end
+		end
+		Game.new(players)
+	end
+
+	def self.name_players_from_console(game)
+		puts "Please decide on unique names for yourselves!"
+		game.players.each_with_index do |player,i|
+			puts "Hey Player #{i+1}, what is your name?"
+			print ">> "
+			player.name = $stdin.gets.chomp
+		end
+	end
+
+
 end
