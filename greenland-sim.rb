@@ -11,8 +11,8 @@ strategy_list = []
 for i in 0...player_count
 	puts "What strategy should Player #{i} use? (StdInput, DoNothing)"
 	print ">> "
-	answer = $stdin.gets.chomp
-	strategy_list << answer
+	strategy = Object.const_get($stdin.gets.chomp).new
+	strategy_list << strategy
 end
 
 puts "How many iterations of this game do you want to go through?"
@@ -26,16 +26,11 @@ game_results = {}
 # Run the simulation
 game_iterations.times do
 	#Create a new game
-	sim_game = Game.new
+	sim_game = GameFactory.game_from_strategies(strategy_list)
 
-	# Create players
-	player_count.times { sim_game.players << Player.new }
-
-	# Set player strategies
+	# Set player names
 	sim_game.players.each_with_index do |player,i|
 		player.name = "Player-#{i}-#{strategy_list[i]}"
-		strat = Object.const_get(strategy_list[i])
-		player.strategy = strat.new(sim_game)
 	end
 
 	# Play the damn game already!
