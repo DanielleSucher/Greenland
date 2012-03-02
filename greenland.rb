@@ -169,8 +169,8 @@ class Turn
 	end
 
 	def trade(give_or_receive)
-		more_stuff = 'y'
-		while more_stuff != 'n'
+		more_stuff = true
+		while more_stuff
 			puts "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
 			print ">> "
 			kind = @game.players.first.strategy.sequence_point
@@ -192,7 +192,7 @@ class Turn
 		puts "Does anyone want to make a trade? (y/n)"
 		print ">> "
 		another_trade = @game.players.first.strategy.sequence_point
-		while another_trade != 'n'
+		while another_trade
 			@give = {}
 			@receive = {}
 			# figure out what the first player in this trade is trading

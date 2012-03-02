@@ -89,7 +89,7 @@ end
 
 class StdInput < Strategy
 	def sequence_point 
-		$stdin.gets.chomp
+		$stdin.gets.chomp.downcase == 'y'
 	end
 
 	def send_boats_count(boats)
