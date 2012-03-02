@@ -119,7 +119,7 @@ class Player
 		@tokens = { :local_people => 4, :sheep => 4, :cows => 1, :boats => 1, :timber => 0,
 					:food => 0, :vinland_people => 0, :hunting_people => 0, :busy_people => 0, 
 					:boats_in_vinland => 0, :boats_hunting => 0, :hay => 0, :ivory => 0, :silver => 0 }
-		@name = ""
+		@name = "" + rand.to_s #default name is random
 		@total_points = 0
 	end
 
@@ -169,20 +169,20 @@ class Turn
 	end
 
 	def trade(give_or_receive)
-		more_stuff = "y"
-		while more_stuff == "y"
+		more_stuff = 'y'
+		while more_stuff != 'n'
 			puts "What's the next kind of token you're giving as part of this trade? (#{@possible_trades.keys.join(", ")})"
 			print ">> "
-			kind = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
+			kind = @game.players.first.strategy.sequence_point
 			puts "How many #{kind} tokens are you giving?"
 			print ">> "
-			count = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
-			count = count.to_i
+			count = @game.players.first.strategy.sequence_point.to_i
+			count = count
 			give_or_receive[@possible_trades[kind]] = count
 			#loop through what kind / what amount until they're done to determine the give_or_receive array
 			puts "Do you want to give any other kind of tokens in this trade? (y/n)"
 			print ">> "
-			more_stuff = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
+			more_stuff = @game.players.first.strategy.sequence_point
 		end
 	end
 
@@ -191,20 +191,20 @@ class Turn
 		puts "Players may trade tokens at this point. Please discuss amongst yourselves."
 		puts "Does anyone want to make a trade? (y/n)"
 		print ">> "
-		another_trade = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
-		while another_trade == "y"
+		another_trade = @game.players.first.strategy.sequence_point
+		while another_trade != 'n'
 			@give = {}
 			@receive = {}
 			# figure out what the first player in this trade is trading
 			puts "Who is the first player involved in this trade?" 
 			print ">> "
-			trader_name = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
+			trader_name = @game.players.first.strategy.sequence_point
 			@trader = @game.players.detect { |player| player.name == trader_name }
 			self.trade(@give)
 			# figure out what the other player in this trade is trading
 			puts "Who is the other player involved in this trade?"
 			print ">> "
-			tradee_name = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
+			tradee_name = @game.players.first.strategy.sequence_point
 			@tradee = @game.players.detect { |player| player.name == tradee_name }
 			self.trade(@receive)
 			# actually make the trade happen, don't just save the data!
@@ -219,7 +219,7 @@ class Turn
 			end
 			puts "Does anyone want to make any more trades at this time? (y/n)"
 			print ">> "
-			another_trade = @game.players.first.strategy.sequence_point # $stdin.gets.chomp
+			another_trade = @game.players.first.strategy.sequence_point
 		end 
 		puts "Trading is now over until you hit the next sequence point."
 	end
@@ -232,14 +232,14 @@ class Turn
 			if player.tokens[:boats] > 0
 				puts "Hey #{player.name}, how many boats do you want to send #{destination} this year?"
 				print ">> "
-				answer = player.strategy.send_boats_count(boats) # $stdin.gets.chomp.to_i
+				answer = player.strategy.send_boats_count(boats)
 				if answer != 0 && answer <= player.tokens[:boats]
 					player.tokens[boats] += answer
 					player.tokens[:boats] -= answer
 					puts "How many people do you want to send #{destination}?"
 					puts "(Remember, you have #{player.tokens[:local_people]} people tokens, and must send at least 2 and no more than 10 people per boat.)"
 					print ">> "
-					count = player.strategy.send_boats_people_count(boats) # $stdin.gets.chomp.to_i
+					count = player.strategy.send_boats_people_count(boats)
 					needed = 2 * player.tokens[boats]
 					if count >= needed
 						player.tokens[:local_people] -= count
@@ -267,8 +267,8 @@ class Turn
 		@game.players.each do |player|
 			puts "Hey #{player.name}, do you want to hunt seals this turn? (y/n)"
 			print ">> "
-			seals = player.strategy.hunt_seals # $stdin.gets.chomp
-			if seals == "y"
+			seals = player.strategy.hunt_seals
+			if seals
 				# Each player who hunts seals puts aside one person token.
 				player.tokens[:local_people] -= 1
 				player.tokens[:hunting_people] += 1
@@ -352,7 +352,7 @@ class Turn
 
 		self.sequence_point # players can trade tokens
 
-		if @game.ship_worth_it == true
+		if @game.ship_worth_it
 			# Except on turn 1, or if the trade ship is on the "not worth it" space:
 
 			# A ship arrives from Norway: players may trade processed ivory tokens
@@ -375,7 +375,7 @@ class Turn
 					puts "#{player.name}, you currently have #{player.tokens[:ivory]} ivory tokens."
 					puts "How many ivory tokens do you want to trade away this year?"
 					print ">> "
-					ivory_traded = player.strategy.ivory_to_trade # $stdin.gets.chomp.to_i
+					ivory_traded = player.strategy.ivory_to_trade
 					if ivory_traded <= player.tokens[:ivory]
 						player.tokens[:ivory] -= ivory_traded
 						silver_received = @exchange_rate * ivory_traded
@@ -427,7 +427,7 @@ class Turn
 			puts "The more hay you take, the more you damage your soil fertility."
 			puts "How many hay tokens do you want to take?"
 			print ">> "
-			hay_taken = player.strategy.how_much_hay # $stdin.gets.chomp.to_i
+			hay_taken = player.strategy.how_much_hay
 			if hay_taken <= new_hay
 				player.tokens[:hay] += hay_taken
 			else
@@ -513,21 +513,21 @@ class Turn
 		@game.players.each do |player| 
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:sheep]} sheep for 12 food tokens each? (y/n)"
 			print ">> "
-			answer = player.strategy.butcher_sheep # $stdin.gets.chomp
-			if answer == "y"
+			answer = player.strategy.butcher_sheep
+			if answer
 				puts "How many sheep do you want to butcher now?"
 				print ">> "
-				count = player.strategy.butchering_sheep_count # $stdin.gets.chomp.to_i
+				count = player.strategy.butchering_sheep_count
 				player.tokens[:sheep] -= count
 				player.tokens[:food] += count*12
 			end
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:cows]} cows for 18 food tokens each? (y/n)"
 			print ">> "
-			answer = player.strategy.butcher_cows # $stdin.gets.chompp
-			if answer == "y"
+			answer = player.strategy.butcher_cows
+			if answer
 				puts "How many cows do you want to butcher now?"
 				print ">> "
-				count = player.strategy.butchering_cows_count # $stdin.gets.chomp.to_i
+				count = player.strategy.butchering_cows_count
 				player.tokens[:cows] -= count
 				player.tokens[:food] += count*18
 			end
@@ -553,7 +553,7 @@ class Turn
 			puts "You currently have #{player.tokens[:timber]} timber tokens."
 			puts "How many trees do you want to cut down?"
 			print ">> "
-			cut_trees = player.strategy.cut_down_trees_count # $stdin.gets.chomp.to_i
+			cut_trees = player.strategy.cut_down_trees_count
 			if cut_trees > 0
 				# cut down trees
 				if  cut_trees <= available_people
@@ -571,7 +571,7 @@ class Turn
 			puts "#{player.name}, you have #{available_people} people available to deconstruct boats."
 			puts "How many boats do you want to deconstruct?"
 			print ">> "
-			deconstruct_boats = player.strategy.deconstruct_boats_count # $stdin.gets.chomp.to_i
+			deconstruct_boats = player.strategy.deconstruct_boats_count
 			if deconstruct_boats > 0
 				if deconstruct_boats <= available_people
 					# deconstruct boats 
@@ -643,7 +643,7 @@ class Turn
 			puts "#{player.name}, you have #{player.barns} barns, which can hold up to #{capacity} animals."
 			puts "How many of your #{player.tokens[:sheep]} sheep do you want to move indoors for this winter?"
 			print ">> "
-			sheep_saved = player.strategy.sheep_move_into_barns_count # $stdin.gets.chomp.to_i
+			sheep_saved = player.strategy.sheep_move_into_barns_count
 			if sheep_saved > capacity
 				sheep_saved = capacity
 				puts "You can only save up to #{capacity} sheep. Beyond that, you're out of space!"
@@ -654,7 +654,7 @@ class Turn
 			if capacity > 0
 				puts "How many of your #{player.tokens[:cows]} cows do you want to move indoors for this winter?"
 				print ">> "
-				cows_saved = player.strategy.cows_move_into_barns_count # $stdin.gets.chomp.to_
+				cows_saved = player.strategy.cows_move_into_barns_count
 				if cows_saved > capacity
 					cows_saved = capacity
 					puts "You can only save up to #{capacity} cows. Beyond that, you're out of space!"
@@ -675,8 +675,8 @@ class Turn
 			# Each player either returns three hay tokens for each sheep, or graze their sheep outside.
 			puts "#{player.name}, do you want to spend hay tokens to feed your sheep and let your soil recover? (y/n)"
 			print ">> "
-			answer = player.strategy.feed_sheep_hay # $stdin.gets.chomp
-			if answer == "y"
+			answer = player.strategy.feed_sheep_hay
+			if answer
 				sheep_multiplier = 3
 				# If a player does not graze their sheep outside, the soil can recover;
 				# their soil fertility counter moves up (more fertile) by 4.
@@ -697,7 +697,7 @@ class Turn
 	def choose_dealer(chooser)
 		puts "Hey #{chooser.name}, you get to choose - who should be the next dealer?"
 		print ">> "
-		dealer = chooser.strategy.choose_dealer # $stdin.gets.chomp
+		dealer = chooser.strategy.choose_dealer
 		i = @game.players.index { |player| player.name == dealer }
 		@game.players.rotate!(i)
 	end
@@ -719,7 +719,7 @@ class Turn
 			# (Currently not letting players repair other players' barns. Maybe add to rules later.)
 			puts "#{player.name}, how many of your #{player.barns} barns do you want to repair this year?"
 			print ">> "
-			answer = player.strategy.repair_barns_count # $stdin.gets.chomp.to_i
+			answer = player.strategy.repair_barns_count
 			if answer != 0
 				answer.times do
 					player.repair_barn
@@ -729,7 +729,7 @@ class Turn
 			# Build a barn: this requires six people and six units of timber.
 			puts "#{player.name}, how many barns do you want to build this year?"
 			print ">> "
-			answer = player.strategy.build_barns_count # $stdin.gets.chomp.to_i
+			answer = player.strategy.build_barns_count
 			if answer != 0
 				answer.times do
 					player.build_building("barn",6,6)
@@ -738,7 +738,7 @@ class Turn
 			# Build a boat: this requires three people and three units of timber.
 			puts "#{player.name}, how many boats do you want to build this year?"
 			print ">> "
-			answer = player.strategy.build_boats_count # $stdin.gets.chomp.to_i
+			answer = player.strategy.build_boats_count
 			if answer != 0
 				answer.times do
 					player.build_building("boat",3,3)
@@ -840,8 +840,12 @@ end
 
 # Greenland: a game for 2-6 players
 class Game
-	attr_accessor :number_players, :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, 
+	attr_accessor :tree_track, :players, :year_deck, :walrus_deck, :winter_deck, 
 				  :seal_deck, :game_over, :ship_worth_it, :winners, :winner_names, :current_turn
+
+	def number_players
+		@players.size
+	end
 
 	def create_decks
 		@year_deck = YearDeck.new
@@ -850,9 +854,12 @@ class Game
 		@seal_deck = SealDeck.new
 	end
 
-	def initialize
+	def initialize(players)
 		@game_over = false
-		@players = []
+		@players = players
+		for player in @players
+			player.strategy.setup(self, player)
+		end
 		@tree_track = 99
 			# A *single* tree track, numbered 0-99, with each block of ten marked by
 			# a number from 1-10 (the soil anchoring rate), starts at 99
@@ -864,28 +871,6 @@ class Game
 
 	def simulation
 		@sim = true
-	end
-
-	def create_players
-		@number_players = 0
-		until @number_players >= 2 && @number_players < 7
-			@players = []
-			puts "How many people are playing? (2-6)"
-			print ">> "
-			@number_players = $stdin.gets.chomp.to_i
-			for i in 1..@number_players
-				@players << Player.new
-			end
-		end
-	end
-
-	def name_players
-		puts "Please decide on unique names for yourselves!"
-		@players.each_with_index do |player,i|
-			puts "Hey Player #{i+1}, what is your name?"
-			print ">> "
-			player.name = $stdin.gets.chomp
-		end
 	end
 
 	# Tokens and buildings are public. (presumably meaning that all players can see those belonging to any player? 
@@ -928,4 +913,43 @@ class Game
 			puts "You all died. Greenland wins!"
 		end
 	end
+end
+
+class GameFactory
+
+	def self.game_from_strategies(strategies)
+		players = strategies.map { |strategy|
+			      player = Player.new
+			      player.strategy = strategy
+			      player
+		}
+		Game.new(players)
+	end
+
+	def self.game_from_console
+		number_players = 0
+		until number_players >= 2 && number_players < 7
+			players = []
+			puts "How many people are playing? (2-6)"
+			print ">> "
+			number_players = $stdin.gets.chomp.to_i
+			for i in 1..number_players
+				player = Player.new
+				player.strategy = StdInput.new
+				players << player
+			end
+		end
+		Game.new(players)
+	end
+
+	def self.name_players_from_console(game)
+		puts "Please decide on unique names for yourselves!"
+		game.players.each_with_index do |player,i|
+			puts "Hey Player #{i+1}, what is your name?"
+			print ">> "
+			player.name = $stdin.gets.chomp
+		end
+	end
+
+
 end

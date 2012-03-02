@@ -2,11 +2,19 @@ $:.unshift File.expand_path('.')
 require 'greenland'
 require 'input_faker'
 
+def new_game_with_three_stdin_players
+	strategies = []
+	3.times do
+		strategies << StdInput.new
+	end
+	GameFactory.game_from_strategies(strategies)
+end
+
 describe Game do
 
 	describe "New Game" do
 		before(:each) do
-			@game = Game.new
+			@game = new_game_with_three_stdin_players
 		end
 
 		it "should have a tree track starting at 99" do
@@ -23,8 +31,7 @@ describe Game do
 
 		it "should successfully set the Stdinput strategy for human users" do
 			InputFaker.with_fake_input(["2"]) do
-				@game.create_players
-				@game.players.each { |player| player.strategy = StdInput.new(@game) }
+				GameFactory.game_from_console
 				@game.players[0].strategy.class.should be == StdInput
 				@game.players[1].strategy.class.should be == StdInput
 			end
@@ -68,12 +75,12 @@ describe Game do
 	describe "Play Game" do
 
 		before(:each) do
-			@game = Game.new
+			@game = new_game_with_three_stdin_players
 		end
 
 		it "should create players properly" do
 			InputFaker.with_fake_input(["1","3"]) do
-				@game.create_players
+				@game = GameFactory.game_from_console
 				@game.number_players.should be == 3
 				@game.players.length.should be == 3
 			end
@@ -81,9 +88,8 @@ describe Game do
 
 		it "should name players properly" do
 			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
-				@game.create_players
-				@game.players.each { |player| player.strategy = StdInput.new(@game) }
-				@game.name_players
+				@game = GameFactory.game_from_console
+				GameFactory.name_players_from_console @game
 				@game.players.length.should be == 3
 				@game.players[0].name.should be == "Ann"
 				@game.players[1].name.should be == "Ben"
@@ -91,18 +97,14 @@ describe Game do
 			end
 		end
 
-		it "should end the game when the succession card comes up" do
-			InputFaker.with_fake_input(["3","Ann","Ben","Cat"]) do
-				@game.game_over = true
-				@game.create_players
-				@game.players.each { |player| player.strategy = StdInput.new(@game) }
-				@game.play
-				@game.players.length.should be == 3
-				@game.winners.length.should be == 3
-				@game.winners.should include(@game.players[0])
-				@game.winners.should include(@game.players[1])
-				@game.winners.should include(@game.players[2])
-			end
+		it "should mark winners when the game is over" do
+			@game.game_over = true
+			@game.play
+			@game.players.length.should be == 3
+			@game.winners.length.should be == 3
+			@game.winners.should include(@game.players[0])
+			@game.winners.should include(@game.players[1])
+			@game.winners.should include(@game.players[2])
 		end
 	end
 end
@@ -262,8 +264,8 @@ describe Player do
 			@player.barn_animals[:cows].should == 0
 		end
 
-		it "should have a blank name" do
-			@player.name.should == ""
+		it "should have a random name" do
+			@player.name.size.should > 3
 		end
 
 		it "should have no total endgame points" do
@@ -337,10 +339,7 @@ end
 describe Turn do
 
 	before(:each) do 
-			@game = Game.new
-			@game.players = []
-			3.times { @game.players << Player.new }
-			@game.players.each { |player| player.strategy = StdInput.new(@game) }
+			@game = new_game_with_three_stdin_players
 			@game.players[0].name = "Ann"
 			@game.players[1].name = "Ben"
 			@game.players[2].name = "Cat"
@@ -740,13 +739,12 @@ end
 
 describe "Strategy" do
 	before(:each) do
-		@game = Game.new
+		@game = new_game_with_three_stdin_players
 	end
 
 	it "should successfully set the Stdinput strategy for human users" do
 		InputFaker.with_fake_input(["2"]) do
-			@game.create_players
-			@game.players.each { |player| player.strategy = StdInput.new(@game) }
+			@game = GameFactory.game_from_console
 			@game.players[0].strategy.class.should be == StdInput
 			@game.players[1].strategy.class.should be == StdInput
 		end
