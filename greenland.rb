@@ -177,7 +177,7 @@ class Turn
 			puts "How many #{kind} tokens are you giving?"
 			print ">> "
 			count = @game.players.first.strategy.sequence_point
-			count = count.to_i
+			count = count
 			give_or_receive[@possible_trades[kind]] = count
 			#loop through what kind / what amount until they're done to determine the give_or_receive array
 			puts "Do you want to give any other kind of tokens in this trade? (y/n)"
@@ -232,14 +232,14 @@ class Turn
 			if player.tokens[:boats] > 0
 				puts "Hey #{player.name}, how many boats do you want to send #{destination} this year?"
 				print ">> "
-				answer = player.strategy.send_boats_count(boats).to_i
+				answer = player.strategy.send_boats_count(boats)
 				if answer != 0 && answer <= player.tokens[:boats]
 					player.tokens[boats] += answer
 					player.tokens[:boats] -= answer
 					puts "How many people do you want to send #{destination}?"
 					puts "(Remember, you have #{player.tokens[:local_people]} people tokens, and must send at least 2 and no more than 10 people per boat.)"
 					print ">> "
-					count = player.strategy.send_boats_people_count(boats).to_i
+					count = player.strategy.send_boats_people_count(boats)
 					needed = 2 * player.tokens[boats]
 					if count >= needed
 						player.tokens[:local_people] -= count
@@ -375,7 +375,7 @@ class Turn
 					puts "#{player.name}, you currently have #{player.tokens[:ivory]} ivory tokens."
 					puts "How many ivory tokens do you want to trade away this year?"
 					print ">> "
-					ivory_traded = player.strategy.ivory_to_trade.to_i
+					ivory_traded = player.strategy.ivory_to_trade
 					if ivory_traded <= player.tokens[:ivory]
 						player.tokens[:ivory] -= ivory_traded
 						silver_received = @exchange_rate * ivory_traded
@@ -427,7 +427,7 @@ class Turn
 			puts "The more hay you take, the more you damage your soil fertility."
 			puts "How many hay tokens do you want to take?"
 			print ">> "
-			hay_taken = player.strategy.how_much_hay.to_i
+			hay_taken = player.strategy.how_much_hay
 			if hay_taken <= new_hay
 				player.tokens[:hay] += hay_taken
 			else
@@ -517,17 +517,17 @@ class Turn
 			if answer
 				puts "How many sheep do you want to butcher now?"
 				print ">> "
-				count = player.strategy.butchering_sheep_count.to_i
+				count = player.strategy.butchering_sheep_count
 				player.tokens[:sheep] -= count
 				player.tokens[:food] += count*12
 			end
 			puts "Hey #{player.name}, do you want to trade any of your #{player.tokens[:cows]} cows for 18 food tokens each? (y/n)"
 			print ">> "
-			answer = player.strategy.butcher_cowsp
+			answer = player.strategy.butcher_cows
 			if answer
 				puts "How many cows do you want to butcher now?"
 				print ">> "
-				count = player.strategy.butchering_cows_count.to_i
+				count = player.strategy.butchering_cows_count
 				player.tokens[:cows] -= count
 				player.tokens[:food] += count*18
 			end
@@ -553,7 +553,7 @@ class Turn
 			puts "You currently have #{player.tokens[:timber]} timber tokens."
 			puts "How many trees do you want to cut down?"
 			print ">> "
-			cut_trees = player.strategy.cut_down_trees_count.to_i
+			cut_trees = player.strategy.cut_down_trees_count
 			if cut_trees > 0
 				# cut down trees
 				if  cut_trees <= available_people
@@ -571,7 +571,7 @@ class Turn
 			puts "#{player.name}, you have #{available_people} people available to deconstruct boats."
 			puts "How many boats do you want to deconstruct?"
 			print ">> "
-			deconstruct_boats = player.strategy.deconstruct_boats_count.to_i
+			deconstruct_boats = player.strategy.deconstruct_boats_count
 			if deconstruct_boats > 0
 				if deconstruct_boats <= available_people
 					# deconstruct boats 
@@ -643,7 +643,7 @@ class Turn
 			puts "#{player.name}, you have #{player.barns} barns, which can hold up to #{capacity} animals."
 			puts "How many of your #{player.tokens[:sheep]} sheep do you want to move indoors for this winter?"
 			print ">> "
-			sheep_saved = player.strategy.sheep_move_into_barns_count.to_i
+			sheep_saved = player.strategy.sheep_move_into_barns_count
 			if sheep_saved > capacity
 				sheep_saved = capacity
 				puts "You can only save up to #{capacity} sheep. Beyond that, you're out of space!"
@@ -654,7 +654,7 @@ class Turn
 			if capacity > 0
 				puts "How many of your #{player.tokens[:cows]} cows do you want to move indoors for this winter?"
 				print ">> "
-				cows_saved = player.strategy.cows_move_into_barns_count.to_
+				cows_saved = player.strategy.cows_move_into_barns_count
 				if cows_saved > capacity
 					cows_saved = capacity
 					puts "You can only save up to #{capacity} cows. Beyond that, you're out of space!"
@@ -719,7 +719,7 @@ class Turn
 			# (Currently not letting players repair other players' barns. Maybe add to rules later.)
 			puts "#{player.name}, how many of your #{player.barns} barns do you want to repair this year?"
 			print ">> "
-			answer = player.strategy.repair_barns_count.to_i
+			answer = player.strategy.repair_barns_count
 			if answer != 0
 				answer.times do
 					player.repair_barn
@@ -729,7 +729,7 @@ class Turn
 			# Build a barn: this requires six people and six units of timber.
 			puts "#{player.name}, how many barns do you want to build this year?"
 			print ">> "
-			answer = player.strategy.build_barns_count.to_i
+			answer = player.strategy.build_barns_count
 			if answer != 0
 				answer.times do
 					player.build_building("barn",6,6)
@@ -738,7 +738,7 @@ class Turn
 			# Build a boat: this requires three people and three units of timber.
 			puts "#{player.name}, how many boats do you want to build this year?"
 			print ">> "
-			answer = player.strategy.build_boats_count.to_i
+			answer = player.strategy.build_boats_count
 			if answer != 0
 				answer.times do
 					player.build_building("boat",3,3)
